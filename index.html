@@ -1,0 +1,1118 @@
+<!doctype html><html lang="fa"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>برآورد قیمت نادری</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#16262d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="برآورد نادری">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;500;700&display=swap">
+<style>
+/* Layout: product chips on top, inputs column beside a sticky steel-dark result panel; on phones the panel moves below and a bottom bar keeps the total in view. */
+:root {
+  --bg: #e9eef0;
+  --surface: #f8fafb;
+  --field: #ffffff;
+  --ink: #17252c;
+  --muted: #556871;
+  --line: #cfd9dd;
+  --accent: #0e6b69;
+  --accent-ink: #ffffff;
+  --accent-soft: #d6ebe9;
+  --danger: #b3372f;
+  --panel: #16262d;
+  --panel-ink: #ecf3f3;
+  --panel-muted: #9db3b8;
+  --panel-line: #2c434b;
+  --c-material: #3b7aa3;
+  --c-parts: #8b6fb3;
+  --c-labor: #5fb0a8;
+  --c-extras: #c9a35b;
+  --c-overhead: #8d9aa3;
+  --c-profit: #3f9f6f;
+  --font-body: "Vazirmatn", Tahoma, "Segoe UI", sans-serif;
+  --font-display: "Lalezar", "Vazirmatn", Tahoma, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171b;
+    --surface: #172127;
+    --field: #0f171b;
+    --ink: #e5eef0;
+    --muted: #94a8af;
+    --line: #2a3a42;
+    --accent: #4fc3b8;
+    --accent-ink: #0b1a1c;
+    --accent-soft: #1a3a3b;
+    --danger: #f08a82;
+    --panel: #1d3139;
+    --panel-ink: #ecf3f3;
+    --panel-muted: #9db3b8;
+    --panel-line: #34505a;
+    --c-material: #5a9cc6;
+    --c-parts: #a58bd1;
+    --c-labor: #6fc4bb;
+    --c-extras: #d8b36c;
+    --c-overhead: #9fadb5;
+    --c-profit: #55b985;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171b;
+  --surface: #172127;
+  --field: #0f171b;
+  --ink: #e5eef0;
+  --muted: #94a8af;
+  --line: #2a3a42;
+  --accent: #4fc3b8;
+  --accent-ink: #0b1a1c;
+  --accent-soft: #1a3a3b;
+  --danger: #f08a82;
+  --panel: #1d3139;
+  --panel-ink: #ecf3f3;
+  --panel-muted: #9db3b8;
+  --panel-line: #34505a;
+  --c-material: #5a9cc6;
+  --c-parts: #a58bd1;
+  --c-labor: #6fc4bb;
+  --c-extras: #d8b36c;
+  --c-overhead: #9fadb5;
+  --c-profit: #55b985;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  direction: rtl;
+  padding-inline: 16px;
+  padding-block: 20px 96px;
+}
+.wrap { max-width: 1080px; margin-inline: auto; display: flex; flex-direction: column; gap: 20px; }
+.eyebrow { margin: 0; font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
+h1 { margin: 2px 0 6px; font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 6vw, 40px); line-height: 1.25; text-wrap: balance; }
+.lede { margin: 0; max-width: 62ch; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font: inherit; font-weight: 500; cursor: pointer;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 6px 16px; min-height: 40px; max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip.add { border-style: dashed; color: var(--accent); background: transparent; }
+.chip:focus-visible, .seg button:focus-visible, .btn:focus-visible, .sbtn:focus-visible, summary:focus-visible,
+.iconbtn:focus-visible, .xbtn:focus-visible, .pick:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.layout { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
+@media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr) 380px; } }
+.inputs { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.group { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; margin: 0; }
+.group h2 { margin: 0 0 12px; font-size: 15px; font-weight: 700; padding: 0; }
+.group summary { cursor: pointer; font-size: 15px; font-weight: 700; }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.lbl { font-size: 13px; color: var(--muted); }
+.box { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 8px; background: var(--field); overflow: hidden; }
+.box:focus-within { border-color: var(--accent); outline: 2px solid var(--accent-soft); }
+.box input {
+  flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; color: var(--ink);
+  font: inherit; font-weight: 500; padding: 8px 12px; min-height: 42px; outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.unit { display: flex; align-items: center; padding-inline: 10px; font-size: 12px; color: var(--muted); border-inline-start: 1px solid var(--line); white-space: nowrap; }
+.unit select { border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 12px; padding: 0; cursor: pointer; outline: none; }
+.hint { font-size: 12px; color: var(--muted); margin: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.sbtn { font: inherit; font-weight: 500; cursor: pointer; min-height: 42px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--field); color: var(--ink); }
+.sbtn:hover { border-color: var(--accent); }
+a.sbtn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.sbtn.wa { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.sbtn.danger { color: var(--danger); }
+select.sbtn { max-width: 100%; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--field); }
+.seg button { font: inherit; font-weight: 500; background: transparent; color: var(--ink); border: 0; padding: 8px 18px; min-height: 42px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
+.mlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mrow { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--field); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.mhead { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.iconbtn, .pick { flex: none; width: 42px; height: 42px; border-radius: 8px; border: 1px solid var(--line); background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.pick { background: var(--surface); color: var(--ink); }
+.pick[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.mname { flex: 1; min-width: 0; border: 0; border-bottom: 1px dashed var(--line); background: transparent; color: var(--ink); font: inherit; font-weight: 700; padding: 6px 4px; min-height: 42px; outline: none; }
+.mname:focus { border-bottom-color: var(--accent); }
+.xbtn { flex: none; width: 42px; height: 42px; border: 0; background: transparent; color: var(--muted); font-size: 24px; line-height: 1; cursor: pointer; border-radius: 8px; }
+.xbtn:hover { color: var(--danger); }
+.mcalc { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: end; }
+.mcalc .box { background: var(--surface); }
+.times { color: var(--muted); font-size: 20px; line-height: 42px; }
+.line { text-align: end; font-weight: 700; font-variant-numeric: tabular-nums; grid-column: 1 / -1; }
+.picker { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 4px; }
+.mfoot { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; font-weight: 700; flex-wrap: wrap; }
+.mfoot span:last-child { font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) {
+  .mcalc { grid-template-columns: 1fr; gap: 4px; }
+  .times { justify-self: center; line-height: 1; }
+}
+
+.extras { display: flex; flex-direction: column; gap: 8px; }
+.extra { display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 220px); gap: 12px; align-items: center; }
+.extra label.check { display: flex; align-items: center; gap: 10px; min-width: 0; }
+input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+.extra .box.off { opacity: 0.45; }
+@media (max-width: 520px) { .extra { grid-template-columns: 1fr; gap: 6px; } }
+.result { background: var(--panel); color: var(--panel-ink); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+@media (min-width: 900px) { .result { position: sticky; top: env(safe-area-inset-top, 0px); } }
+.result .k { margin: 0; font-size: 13px; color: var(--panel-muted); }
+.pname { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.total { font-family: var(--font-display); font-size: clamp(34px, 8vw, 46px); line-height: 1.2; margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.total small { font-family: var(--font-body); font-size: 14px; color: var(--panel-muted); margin-inline-start: 6px; }
+.approx { margin: 0; color: var(--panel-muted); }
+.stack { display: flex; height: 14px; border-radius: 7px; overflow: hidden; gap: 2px; background: var(--panel-line); }
+.stack span { display: block; min-width: 0; transition: width 0.25s ease; }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.legend li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; font-size: 14px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: block; }
+.legend .amt { font-variant-numeric: tabular-nums; font-weight: 500; }
+.legend .pct { font-size: 12px; color: var(--panel-muted); min-width: 36px; text-align: end; font-variant-numeric: tabular-nums; }
+.sum { border-top: 1px solid var(--panel-line); padding-top: 12px; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.sum div { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.sum dt { color: var(--panel-muted); }
+.sum dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 500; text-align: end; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { font: inherit; font-weight: 500; cursor: pointer; min-height: 42px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--panel-line); background: transparent; color: var(--panel-ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.quote { width: 100%; min-height: 150px; margin-top: 12px; font: inherit; font-size: 13px; background: var(--field); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px; direction: ltr; text-align: left; }
+.quote.fa { direction: rtl; text-align: right; margin-top: 0; }
+.status { min-height: 1.4em; font-size: 13px; margin: 0; }
+.result .status { color: var(--panel-muted); }
+.inputs .status { color: var(--accent); margin-top: 8px; }
+.note { font-size: 12px; color: var(--muted); margin: 0; max-width: 70ch; }
+.bar {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 5;
+  background: var(--panel); color: var(--panel-ink);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+}
+.bar span { font-size: 13px; color: var(--panel-muted); }
+.bar strong { font-family: var(--font-display); font-weight: 400; font-size: 24px; font-variant-numeric: tabular-nums; }
+@media (min-width: 900px) { .bar { display: none; } body { padding-block-end: 32px; } }
+@media (prefers-reduced-motion: reduce) { .stack span { transition: none; } }
+</style>
+
+<div class="wrap" dir="rtl" lang="fa">
+  <header>
+    <p class="eyebrow">ماشین‌سازی نادری · naderi.co</p>
+    <h1>برآورد قیمت ماشین‌آلات</h1>
+    <p class="lede">عددهای پیش‌فرض نمونه هستند. قیمت مواد، نرخ دستمزد و درصدها را با عددهای خودتان عوض کنید. هر محصول جدیدی که بسازید با عددهای خودش ذخیره می‌شود.</p>
+  </header>
+
+  <div class="chips" id="chips" aria-label="محصولات"></div>
+
+  <div class="layout">
+    <div class="inputs" id="inputs"></div>
+
+    <aside class="result" aria-live="polite">
+      <div>
+        <p class="pname" id="pname"></p>
+        <p class="k">قیمت نهایی <span id="qtyLabel"></span></p>
+        <p class="total"><span id="total">۰</span><small>تومان</small></p>
+        <p class="approx" id="approx"></p>
+      </div>
+      <div class="stack" id="stack" role="img" aria-label="سهم هر بخش از قیمت یک دستگاه"></div>
+      <ul class="legend" id="legend"></ul>
+      <dl class="sum" id="sum"></dl>
+      <div class="actions">
+        <button class="btn primary" id="copy" type="button">کپی متن پیش‌فاکتور</button>
+      </div>
+      <p class="status" id="status"></p>
+      <textarea class="quote fa" id="quote" readonly hidden aria-label="متن پیش‌فاکتور"></textarea>
+    </aside>
+  </div>
+
+  <p class="note">سود به‌صورت درصدی از بهای تمام‌شده محاسبه می‌شود (نه از قیمت فروش). سربار روی مجموع مواد، دستمزد و اضافات اعمال می‌شود. عددهای شما فقط در همین مرورگر ذخیره می‌شوند. برای انتقال به گوشی یا مرورگر دیگر از بخش پشتیبان‌گیری استفاده کنید.</p>
+</div>
+
+<div class="bar" id="bar"><span>قیمت نهایی</span><strong id="barTotal">۰</strong></div>
+
+<script>
+(function () {
+  var PRISTINE = '<!doctype html>\n' + document.documentElement.outerHTML;
+  var STANDALONE = document.documentElement.hasAttribute('data-standalone');
+  var SEED_OPEN = '<scr' + 'ipt id="seed" type="application/json">', SEED_CLOSE = '</scr' + 'ipt>';
+  var PREVK = 'naderi-before-import', STAMPK = 'naderi-seed-stamp';
+  var prevJson = '';
+  try { prevJson = localStorage.getItem(PREVK) || ''; } catch (e) {}
+  var FA = '۰۱۲۳۴۵۶۷۸۹';
+  var nf0 = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 });
+  var nf1 = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 1 });
+  var nf2 = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 });
+  function fmt(n) { return nf0.format(Math.round(n)); }
+  function fmtNum(n) { return nf1.format(n); }
+  function fmtQ(n) { return nf2.format(n); }
+  function parse(s) {
+    s = String(s)
+      .replace(/[۰-۹]/g, function (d) { return FA.indexOf(d); })
+      .replace(/[٠-٩]/g, function (d) { return d.charCodeAt(0) - 1632; })
+      .replace(/[٬,،\s]/g, '')
+      .replace('٫', '.');
+    var n = parseFloat(s);
+    return isFinite(n) && n >= 0 ? n : 0;
+  }
+  function millions(n) {
+    if (n >= 1e9) return nf1.format(n / 1e9) + ' میلیارد تومان';
+    return nf1.format(n / 1e6) + ' میلیون تومان';
+  }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function num(v) { v = Number(v); return isFinite(v) && v >= 0 ? v : 0; }
+  function newId() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  /* ---------- icons ---------- */
+  var ICONS = {
+    profile: { n: 'پروفیل', d: '<rect x="3" y="7" width="18" height="10" rx="1.5"/><rect x="7" y="10" width="10" height="4" rx=".8"/>' },
+    sheet: { n: 'ورق', d: '<path d="M3 8l9-4 9 4-9 4z"/><path d="M3 12l9 4 9-4"/><path d="M3 16l9 4 9-4"/>' },
+    paint: { n: 'رنگ', d: '<rect x="4" y="3.5" width="14" height="5" rx="1"/><path d="M18 6h2v5h-8v3"/><rect x="10.5" y="14" width="3" height="6.5" rx="1"/>' },
+    bearing: { n: 'بلبرینگ', d: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/>' },
+    motor: { n: 'موتور', d: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M18 10h3v4h-3M6 10H3v4h3M10 3v3M14 3v3"/>' },
+    gear: { n: 'چرخ‌دنده', d: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>' },
+    bolt: { n: 'برق', d: '<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>' },
+    nut: { n: 'پیچ و مهره', d: '<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/><circle cx="12" cy="12" r="3"/>' },
+    pipe: { n: 'لوله', d: '<path d="M3 9h18v6H3z"/><path d="M7 9v6M17 9v6"/>' },
+    belt: { n: 'تسمه', d: '<rect x="3" y="8" width="18" height="8" rx="4"/><circle cx="7.5" cy="12" r="1.5"/><circle cx="16.5" cy="12" r="1.5"/>' },
+    heater: { n: 'المنت', d: '<path d="M10 14V5a2 2 0 014 0v9a4 4 0 11-4 0z"/>' },
+    chip: { n: 'برد الکترونیک', d: '<rect x="7" y="7" width="10" height="10" rx="1"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/>' },
+    box: { n: 'سایر', d: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>' }
+  };
+  var ICON_KEYS = Object.keys(ICONS);
+  function svg(name) {
+    var ic = ICONS[name] || ICONS.box;
+    return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ic.d + '</svg>';
+  }
+  var UNITS = ['کیلوگرم', 'متر مربع', 'متر', 'عدد', 'ست', 'لیتر'];
+
+  /* ---------- defaults ---------- */
+  var EXTRAS = [
+    ['plc', 'تابلو برق و PLC'],
+    ['install', 'نصب و راه‌اندازی'],
+    ['ship', 'حمل تا محل مشتری'],
+    ['warranty', 'گارانتی و خدمات اولیه']
+  ];
+  function ex(plc, inst, ship, war) {
+    return { plc: { on: plc[0], amt: plc[1] }, install: { on: inst[0], amt: inst[1] }, ship: { on: ship[0], amt: ship[1] }, warranty: { on: war[0], amt: war[1] } };
+  }
+  var DEF_MATS = [
+    { id: 'm-profile', name: 'پروفیل فولادی', icon: 'profile', unit: 'کیلوگرم', price: 70000 },
+    { id: 'm-sheet', name: 'ورق فولادی', icon: 'sheet', unit: 'کیلوگرم', price: 80000 },
+    { id: 'm-paint', name: 'رنگ کوره‌ای', icon: 'paint', unit: 'متر مربع', price: 250000 },
+    { id: 'm-motor', name: 'موتور و گیربکس', icon: 'motor', unit: 'ست', price: 30000000 },
+    { id: 'm-bearing', name: 'بلبرینگ و یاتاقان', icon: 'bearing', unit: 'عدد', price: 1000000 },
+    { id: 'm-misc', name: 'پیچ، مهره و اتصالات', icon: 'nut', unit: 'ست', price: 5000000 },
+    { id: 'm-fl-steel', name: 'فولاد ساده (شاسی و پایه)', icon: 'profile', unit: 'کیلوگرم', price: 100000 },
+    { id: 'm-fl-insul', name: 'عایق و کوره (فایبر و ورق)', icon: 'box', unit: 'ست', price: 15000000 },
+    { id: 'm-fl-drive', name: 'موتور، گیربکس، اینورتر و یاتاقان', icon: 'motor', unit: 'ست', price: 95000000 },
+    { id: 'm-fl-burner', name: 'مشعل با رمپ گاز و ایمنی شعله', icon: 'heater', unit: 'ست', price: 60000000 },
+    { id: 'm-fl-exhaust', name: 'دودکش و فن', icon: 'pipe', unit: 'ست', price: 8000000 },
+    { id: 'm-fl-consum', name: 'مصرفی (آرگون، سنگ، پیچ، رنگ)', icon: 'nut', unit: 'ست', price: 15000000 }
+  ];
+  var BASE_IDS = ['m-profile', 'm-sheet', 'm-paint'];
+  function its(a, b, c, d, e, f) {
+    return [
+      { mid: 'm-profile', qty: a }, { mid: 'm-sheet', qty: b }, { mid: 'm-paint', qty: c },
+      { mid: 'm-motor', qty: d }, { mid: 'm-bearing', qty: e }, { mid: 'm-misc', qty: f }
+    ];
+  }
+  var DEF_PRODUCTS = [
+    { id: 'dragee', name: 'دستگاه دراژه', weight: 90, hours: 120, qty: 1, items: its(60, 80, 6, 1, 4, 2), ex: ex([1, 25e6], [1, 12e6], [0, 6e6], [1, 8e6]) },
+    { id: 'ballmill', name: 'بالمیل شکلات', weight: 300, hours: 260, qty: 1, items: its(220, 260, 14, 2, 6, 4), ex: ex([1, 40e6], [1, 20e6], [0, 10e6], [1, 14e6]) },
+    { id: 'rope', name: 'خط طناب و برش آب‌نبات', weight: 400, hours: 420, qty: 1, items: its(300, 380, 22, 4, 12, 8), ex: ex([1, 70e6], [1, 35e6], [0, 18e6], [1, 22e6]) },
+    { id: 'toffee', name: 'خط تافی', weight: 650, hours: 650, qty: 1, items: its(480, 620, 35, 6, 20, 12), ex: ex([1, 110e6], [1, 55e6], [0, 28e6], [1, 35e6]) },
+    { id: 'flour-roaster', name: 'تفت آرد ۲۵۰ کیلویی', weight: 243.5, hours: 220, qty: 1,
+      items: [{ mid: 'm-fl-steel', qty: 150 }, { mid: 'm-fl-insul', qty: 1 }, { mid: 'm-fl-drive', qty: 1 }, { mid: 'm-fl-burner', qty: 1 }, { mid: 'm-fl-exhaust', qty: 1 }, { mid: 'm-fl-consum', qty: 1 }],
+      ex: ex([1, 35e6], [0, 0], [0, 0], [0, 0]) }
+  ];
+  var SHARED0 = { p304: 1500000, p316: 2250000, grade: '304', waste: 15, rate: 250000, oh: 8, profit: 40, disc: 0, vat: 0 };
+  var SHARED_OLD = { p304: 450000, p316: 750000, grade: '304', waste: 8, rate: 150000, oh: 15, profit: 25, disc: 0, vat: 1 };
+  var PCTKEYS = ['waste', 'oh', 'profit', 'disc'];
+  var MAXP = 60, MAXM = 200;
+
+  function normMat(m) {
+    m = m || {};
+    return {
+      id: String(m.id || newId()),
+      name: String(m.name || '').slice(0, 60) || 'ماده',
+      icon: ICONS[m.icon] ? m.icon : 'box',
+      unit: UNITS.indexOf(m.unit) >= 0 ? m.unit : 'عدد',
+      price: num(m.price)
+    };
+  }
+  function normProduct(p) {
+    p = p || {};
+    var e = {};
+    EXTRAS.forEach(function (x) {
+      var s = p.ex && p.ex[x[0]];
+      e[x[0]] = { on: s && s.on ? 1 : 0, amt: num(s && s.amt) };
+    });
+    var items = [];
+    if (Array.isArray(p.items)) p.items.slice(0, 100).forEach(function (i) {
+      if (i && i.mid) items.push({ mid: String(i.mid), qty: num(i.qty) });
+    });
+    return {
+      id: String(p.id || newId()),
+      name: String(p.name || '').slice(0, 60) || 'محصول',
+      weight: num(p.weight), hours: num(p.hours),
+      qty: Math.max(1, num(p.qty) || 1),
+      items: items,
+      ex: e
+    };
+  }
+  function normShared(s) {
+    var o = clone(SHARED0);
+    if (s && typeof s === 'object') {
+      ['p304', 'p316', 'waste', 'rate', 'oh', 'profit', 'disc'].forEach(function (k) {
+        if (s[k] !== undefined) o[k] = num(s[k]);
+      });
+      PCTKEYS.forEach(function (k) { o[k] = Math.min(100, o[k]); });
+      if (s.grade === '316') o.grade = '316';
+      if (s.vat !== undefined) o.vat = s.vat ? 1 : 0;
+    }
+    return o;
+  }
+
+  var S = { pid: '', sh: clone(SHARED0), mats: DEF_MATS.map(normMat), products: DEF_PRODUCTS.map(normProduct) };
+  S.pid = S.products[0].id;
+
+  /* Old saves (before the materials list) carried one "parts" number per product. */
+  function migrate(obj) {
+    var mats = DEF_MATS.map(normMat);
+    var prods = obj.products.slice(0, MAXP).map(function (p) {
+      var q = normProduct(p);
+      q.items = BASE_IDS.map(function (id) { return { mid: id, qty: 0 }; });
+      if (num(p && p.parts) > 0) {
+        var m = normMat({ id: newId(), name: 'قطعات خریداری‌شده', icon: 'gear', unit: 'ست', price: p.parts });
+        mats.push(m);
+        q.items.push({ mid: m.id, qty: 1 });
+      }
+      return q;
+    });
+    return { pid: obj.pid, sh: obj.sh, mats: mats, products: prods };
+  }
+  function fromV1(o) {
+    var prods = DEF_PRODUCTS.map(function (d) {
+      var q = o.pp[d.id];
+      return q ? Object.assign({ id: d.id, name: d.name }, q) : { id: d.id, name: d.name };
+    });
+    return { pid: o.pid, sh: o.sh, products: prods };
+  }
+
+  function loadState(obj) {
+    if (!obj || !Array.isArray(obj.products) || !obj.products.length) return false;
+    if (!Array.isArray(obj.mats)) obj = migrate(obj);
+    var seenM = {};
+    var mats = obj.mats.slice(0, MAXM).map(function (m) {
+      var q = normMat(m);
+      if (seenM[q.id]) q.id = newId();
+      seenM[q.id] = 1;
+      return q;
+    });
+    var seen = {};
+    var list = obj.products.slice(0, MAXP).map(function (p) {
+      var q = normProduct(p);
+      if (seen[q.id]) q.id = newId();
+      seen[q.id] = 1;
+      var used = {};
+      q.items = q.items.filter(function (i) {
+        if (!seenM[i.mid] || used[i.mid]) return false;
+        used[i.mid] = 1;
+        return true;
+      });
+      return q;
+    });
+    S.mats = mats;
+    S.products = list;
+    S.sh = normShared(obj.sh);
+    S.pid = seen[obj.pid] ? obj.pid : list[0].id;
+    return true;
+  }
+
+  var KEY = 'naderi-estimator-v3', K2 = 'naderi-estimator-v2', K1 = 'naderi-estimator-v1';
+  try {
+    var raw = localStorage.getItem(KEY), r2 = localStorage.getItem(K2), r1 = localStorage.getItem(K1);
+    if (raw) loadState(JSON.parse(raw));
+    else if (r2) loadState(JSON.parse(r2));
+    else if (r1) { var o1 = JSON.parse(r1); if (o1 && o1.pp) loadState(fromV1(o1)); }
+  } catch (e) {}
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ v: 3, pid: S.pid, sh: S.sh, mats: S.mats, products: S.products })); } catch (e) {}
+  }
+
+  function byId(id) {
+    for (var i = 0; i < S.products.length; i++) if (S.products[i].id === id) return S.products[i];
+    return null;
+  }
+  function matById(id) {
+    for (var i = 0; i < S.mats.length; i++) if (S.mats[i].id === id) return S.mats[i];
+    return null;
+  }
+  function cur() { return byId(S.pid) || S.products[0]; }
+  function store(s) { return s === 'sh' ? S.sh : cur(); }
+
+  var PCT = '٪';
+  var PROD_HTML =
+    '<fieldset class="group"><h2>محصول</h2>' +
+    '<div class="fields"><label class="field" for="f-name"><span class="lbl">نام محصول</span>' +
+    '<span class="box"><input id="f-name" type="text" maxlength="60" autocomplete="off"></span></label></div>' +
+    '<div class="row">' +
+    '<button class="sbtn" id="addP" type="button">+ محصول جدید</button>' +
+    '<button class="sbtn" id="dupP" type="button">کپی این محصول</button>' +
+    '<button class="sbtn danger" id="delP" type="button">حذف این محصول</button></div>' +
+    '<p class="status" id="pstatus" role="status"></p></fieldset>';
+  var ITEMS_HTML =
+    '<fieldset class="group"><h2>مواد و قطعات</h2>' +
+    '<p class="hint" style="margin-bottom:12px">هر ردیف مقدار را در قیمت واحد ضرب می‌کند و جمع همه به قیمت اضافه می‌شود. مقدار فولاد را با ضایعات وارد کنید. نام، آیکون و قیمت هر ماده برای همهٔ محصولات یکی است و مقدارش برای هر محصول جداست.</p>' +
+    '<ul class="mlist" id="items"></ul>' +
+    '<div class="row"><select class="sbtn" id="addFrom" aria-label="افزودن ماده از لیست"></select>' +
+    '<button class="sbtn" id="addNew" type="button">+ ماده جدید</button></div>' +
+    '<div class="mfoot"><span>جمع مواد و قطعات</span><span><span id="itemsSum">۰</span> تومان</span></div></fieldset>';
+  var BACKUP_HTML =
+    '<details class="group" id="backup" open><summary>ارسال و دریافت با واتساپ</summary>' +
+    '<p class="hint" style="margin-top:10px">برای فرستادن عددهای فعلی به شریک‌تان، دکمهٔ واتساپ را بزنید و مخاطب را انتخاب کنید. او پیام را کامل کپی می‌کند و در همین بخش می‌چسباند. هر دو نفر می‌توانید عددها را عوض کنید و برای هم بفرستید.</p>' +
+    '<div class="row">' +
+    '<a class="sbtn wa" id="waSend" href="https://wa.me/" target="_blank" rel="noopener">ارسال به واتساپ</a>' +
+    '<button class="sbtn" id="bkMake" type="button">کپی متن برای ارسال</button>' +
+    '<button class="sbtn" id="fileSend" type="button" hidden>ارسال فایل برنامه</button></div>' +
+    '<textarea class="quote fa" id="bkOut" readonly hidden aria-label="متن آماده ارسال"></textarea>' +
+    '<p class="lbl" style="margin:18px 0 6px">دریافت: پیام شریک را اینجا بچسبانید</p>' +
+    '<textarea class="quote fa" id="bk" spellcheck="false" aria-label="پیام دریافتی"></textarea>' +
+    '<div class="row">' +
+    '<button class="sbtn" id="bkLoad" type="button">دریافت عددها از پیام</button>' +
+    '<button class="sbtn" id="bkUndo" type="button" hidden>برگشت به عددهای قبل از دریافت</button>' +
+    '<button class="sbtn danger" id="bkReset" type="button">بازگردانی همه چیز به نمونه</button></div>' +
+    '<p class="status" id="bstatus" role="status"></p></details>';
+
+  var SECTIONS = [
+    { prod: 1 },
+    { title: 'استیل', fields: [
+      { k: 'weight', s: 'pp', label: 'وزن استیل مصرفی', unit: 'کیلوگرم', dec: 1, hint: 'قبل از ضایعات' },
+      { k: 'waste', s: 'sh', label: 'ضایعات برش و خم استیل', unit: PCT, pct: 1 },
+      { k: 'p304', s: 'sh', label: 'قیمت هر کیلو استیل ۳۰۴', unit: 'تومان' },
+      { k: 'p316', s: 'sh', label: 'قیمت هر کیلو استیل ۳۱۶', unit: 'تومان' },
+      { grade: 1 }
+    ] },
+    { items: 1 },
+    { title: 'ساخت', fields: [
+      { k: 'hours', s: 'pp', label: 'ساعت کار تولید', unit: 'ساعت', hint: 'برش، جوش، پولیش و مونتاژ' },
+      { k: 'rate', s: 'sh', label: 'نرخ هر ساعت کار', unit: 'تومان' }
+    ] },
+    { title: 'اضافات', extras: 1 },
+    { title: 'سربار و سود', fields: [
+      { k: 'oh', s: 'sh', label: 'سربار کارگاه (برق، اجاره، اداری)', unit: PCT, pct: 1 },
+      { k: 'profit', s: 'sh', label: 'سود روی بهای تمام‌شده', unit: PCT, pct: 1 }
+    ] },
+    { title: 'فروش', fields: [
+      { k: 'qty', s: 'pp', label: 'تعداد دستگاه', unit: 'دستگاه' },
+      { k: 'disc', s: 'sh', label: 'تخفیف', unit: PCT, pct: 1 },
+      { vat: 1 }
+    ] },
+    { backup: 1 }
+  ];
+
+  var inputsEl = document.getElementById('inputs');
+  var chipsEl = document.getElementById('chips');
+  var refs = {};
+  var itemsEl, addFromEl, openPick = null;
+
+  function show(f, v) { return (f.pct || f.dec) ? fmtNum(v) : fmt(v); }
+
+  var tmr;
+  function say(t) {
+    ['status', 'pstatus', 'bstatus'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = t; });
+    clearTimeout(tmr);
+    tmr = setTimeout(function () {
+      ['status', 'pstatus', 'bstatus'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = ''; });
+    }, 3500);
+  }
+
+  function twoStep(btn, label, action, guard) {
+    var armed = false, t, orig = btn.textContent;
+    function disarm() { armed = false; btn.textContent = orig; clearTimeout(t); }
+    btn.addEventListener('click', function () {
+      if (guard && !guard()) return;
+      if (!armed) { armed = true; btn.textContent = label; clearTimeout(t); t = setTimeout(disarm, 4000); return; }
+      disarm();
+      action();
+    });
+  }
+
+  function renderChips() {
+    chipsEl.innerHTML = '';
+    S.products.forEach(function (p) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.setAttribute('data-id', p.id);
+      b.addEventListener('click', function () { S.pid = p.id; openPick = null; fillInputs(); update(true); });
+      chipsEl.appendChild(b);
+    });
+    var a = document.createElement('button');
+    a.type = 'button'; a.className = 'chip add'; a.textContent = '+ محصول جدید';
+    a.addEventListener('click', addProduct);
+    chipsEl.appendChild(a);
+    markChips();
+  }
+  function markChips() {
+    var kids = chipsEl.querySelectorAll('.chip[data-id]');
+    for (var i = 0; i < kids.length; i++) {
+      var id = kids[i].getAttribute('data-id');
+      var p = byId(id);
+      if (!p) continue;
+      kids[i].textContent = p.name || 'بدون نام';
+      kids[i].setAttribute('aria-pressed', id === S.pid ? 'true' : 'false');
+    }
+  }
+
+  function renderAll() { openPick = null; renderChips(); fillInputs(); update(true); }
+
+  function addProduct() {
+    if (S.products.length >= MAXP) { say('حداکثر ' + fmt(MAXP) + ' محصول می‌شود ساخت.'); return; }
+    var p = normProduct({ id: newId(), name: 'محصول جدید', items: BASE_IDS.map(function (id) { return { mid: id, qty: 0 }; }) });
+    S.products.push(p);
+    S.pid = p.id;
+    renderAll();
+    var n = document.getElementById('f-name');
+    try { n.focus(); n.select(); } catch (e) {}
+    say('محصول جدید ساخته شد. نام و عددهایش را وارد کنید.');
+  }
+  function dupProduct() {
+    if (S.products.length >= MAXP) { say('حداکثر ' + fmt(MAXP) + ' محصول می‌شود ساخت.'); return; }
+    var p = clone(cur());
+    p.id = newId();
+    p.name = (p.name || 'محصول').slice(0, 52) + ' (کپی)';
+    S.products.splice(S.products.indexOf(cur()) + 1, 0, p);
+    S.pid = p.id;
+    renderAll();
+    say('کپی ساخته شد.');
+  }
+  function delProduct() {
+    var i = S.products.indexOf(cur());
+    S.products.splice(i, 1);
+    S.pid = S.products[Math.min(i, S.products.length - 1)].id;
+    renderAll();
+    say('محصول حذف شد.');
+  }
+
+  /* ---------- material rows ---------- */
+  function renderItems() {
+    var d = cur(), html = '';
+    d.items.forEach(function (it) {
+      var m = matById(it.mid);
+      if (!m) return;
+      var id = esc(m.id);
+      html += '<li class="mrow" data-mid="' + id + '">' +
+        '<div class="mhead">' +
+        '<button type="button" class="iconbtn" data-act="icon" aria-label="تغییر آیکون" aria-expanded="' + (openPick === m.id) + '">' + svg(m.icon) + '</button>' +
+        '<input class="mname" data-f="name" maxlength="60" autocomplete="off" aria-label="نام ماده" value="' + esc(m.name) + '">' +
+        '<button type="button" class="xbtn" data-act="del" aria-label="حذف این ردیف">×</button></div>' +
+        '<div class="mcalc">' +
+        '<label class="field"><span class="lbl">مقدار</span><span class="box"><input data-f="qty" inputmode="decimal" autocomplete="off" aria-label="مقدار" value="' + fmtQ(it.qty) + '">' +
+        '<span class="unit"><select data-f="unit" aria-label="واحد">' +
+        UNITS.map(function (u) { return '<option' + (u === m.unit ? ' selected' : '') + '>' + u + '</option>'; }).join('') +
+        '</select></span></span></label>' +
+        '<span class="times" aria-hidden="true">×</span>' +
+        '<label class="field"><span class="lbl" data-pl>قیمت هر ' + esc(m.unit) + '</span><span class="box"><input data-f="price" inputmode="decimal" autocomplete="off" aria-label="قیمت واحد" value="' + fmt(m.price) + '"><span class="unit">تومان</span></span></label>' +
+        '<output class="line"></output></div>';
+      if (openPick === m.id) {
+        html += '<div class="picker" role="group" aria-label="انتخاب آیکون">' +
+          ICON_KEYS.map(function (k) {
+            return '<button type="button" class="pick" data-act="pick" data-icon="' + k + '" title="' + ICONS[k].n + '" aria-label="' + ICONS[k].n + '" aria-pressed="' + (k === m.icon) + '">' + svg(k) + '</button>';
+          }).join('') + '</div>';
+      }
+      html += '</li>';
+    });
+    itemsEl.innerHTML = html || '<li class="hint">هنوز ماده‌ای اضافه نشده. از دکمه‌های پایین استفاده کنید.</li>';
+
+    var used = {};
+    d.items.forEach(function (it) { used[it.mid] = 1; });
+    var avail = S.mats.filter(function (m) { return !used[m.id]; });
+    addFromEl.innerHTML = '<option value="">+ افزودن از لیست مواد…</option>' +
+      avail.map(function (m) { return '<option value="' + esc(m.id) + '">' + esc(m.name) + '</option>'; }).join('');
+    addFromEl.hidden = !avail.length;
+    updateLines();
+  }
+  function rowItem(row) {
+    var mid = row.getAttribute('data-mid'), d = cur();
+    for (var i = 0; i < d.items.length; i++) if (d.items[i].mid === mid) return d.items[i];
+    return null;
+  }
+  function itemsTotal() {
+    var t = 0;
+    cur().items.forEach(function (it) { var m = matById(it.mid); if (m) t += it.qty * m.price; });
+    return t;
+  }
+  function updateLines() {
+    var rows = itemsEl.querySelectorAll('.mrow');
+    for (var i = 0; i < rows.length; i++) {
+      var it = rowItem(rows[i]), m = it && matById(it.mid);
+      if (!m) continue;
+      rows[i].querySelector('.line').textContent = '= ' + fmt(it.qty * m.price) + ' تومان';
+    }
+    var s = document.getElementById('itemsSum');
+    if (s) s.textContent = fmt(itemsTotal());
+  }
+  function addItem(mid) {
+    var d = cur();
+    d.items.push({ mid: mid, qty: 1 });
+    renderItems();
+    update(true);
+  }
+  function addNewMaterial() {
+    if (S.mats.length >= MAXM) { say('تعداد مواد به حداکثر رسیده است.'); return; }
+    var m = normMat({ id: newId(), name: 'ماده جدید', icon: 'box', unit: 'عدد', price: 0 });
+    S.mats.push(m);
+    openPick = m.id;
+    addItem(m.id);
+    var rows = itemsEl.querySelectorAll('.mrow');
+    var last = rows[rows.length - 1];
+    if (last) { var n = last.querySelector('.mname'); try { n.focus(); n.select(); } catch (e) {} }
+  }
+
+  function bindItems() {
+    itemsEl.addEventListener('input', function (e) {
+      var row = e.target.closest('.mrow');
+      if (!row) return;
+      var f = e.target.getAttribute('data-f'), it = rowItem(row), m = it && matById(it.mid);
+      if (!m) return;
+      if (f === 'qty') it.qty = parse(e.target.value);
+      else if (f === 'price') m.price = parse(e.target.value);
+      else if (f === 'name') m.name = e.target.value.slice(0, 60);
+      else return;
+      update(true);
+    });
+    itemsEl.addEventListener('change', function (e) {
+      var row = e.target.closest('.mrow');
+      if (!row || e.target.getAttribute('data-f') !== 'unit') return;
+      var it = rowItem(row), m = it && matById(it.mid);
+      if (!m || UNITS.indexOf(e.target.value) < 0) return;
+      m.unit = e.target.value;
+      row.querySelector('[data-pl]').textContent = 'قیمت هر ' + m.unit;
+      update(true);
+    });
+    itemsEl.addEventListener('focusin', function (e) {
+      var f = e.target.getAttribute && e.target.getAttribute('data-f');
+      if (f === 'qty' || f === 'price') { try { e.target.select(); } catch (x) {} }
+    });
+    itemsEl.addEventListener('focusout', function (e) {
+      var row = e.target.closest && e.target.closest('.mrow');
+      if (!row) return;
+      var f = e.target.getAttribute('data-f'), it = rowItem(row), m = it && matById(it.mid);
+      if (!m) return;
+      if (f === 'qty') e.target.value = fmtQ(it.qty);
+      else if (f === 'price') e.target.value = fmt(m.price);
+      else if (f === 'name' && !m.name.trim()) { m.name = 'ماده'; e.target.value = m.name; update(true); }
+    });
+    itemsEl.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-act]');
+      if (!b) return;
+      var row = b.closest('.mrow'), it = row && rowItem(row), m = it && matById(it.mid);
+      if (!m) return;
+      var act = b.getAttribute('data-act');
+      if (act === 'icon') { openPick = openPick === m.id ? null : m.id; renderItems(); }
+      else if (act === 'pick') { m.icon = b.getAttribute('data-icon'); openPick = null; renderItems(); update(true); }
+      else if (act === 'del') {
+        var d = cur();
+        d.items.splice(d.items.indexOf(it), 1);
+        if (openPick === m.id) openPick = null;
+        renderItems(); update(true);
+      }
+    });
+    addFromEl.addEventListener('change', function () {
+      var v = addFromEl.value;
+      if (v && matById(v)) addItem(v);
+      else addFromEl.value = '';
+    });
+    document.getElementById('addNew').addEventListener('click', addNewMaterial);
+  }
+
+  function stateJson() { return JSON.stringify({ v: 3, pid: S.pid, sh: S.sh, mats: S.mats, products: S.products }); }
+  function remember() {
+    prevJson = stateJson();
+    try { localStorage.setItem(PREVK, prevJson); } catch (e) {}
+    var u = document.getElementById('bkUndo');
+    if (u) u.hidden = false;
+  }
+  function bytesToB64(u8) {
+    var out = '';
+    for (var i = 0; i < u8.length; i += 8192) out += String.fromCharCode.apply(null, u8.subarray(i, i + 8192));
+    return btoa(out);
+  }
+  function b64ToBytes(b) {
+    var t = atob(b), a = new Uint8Array(t.length);
+    for (var i = 0; i < t.length; i++) a[i] = t.charCodeAt(i);
+    return a;
+  }
+  function pipeBytes(u8, Ctor) {
+    var st = new Ctor('deflate-raw'), w = st.writable.getWriter();
+    w.write(u8); w.close();
+    return new Response(st.readable).arrayBuffer().then(function (b) { return new Uint8Array(b); });
+  }
+  function encodeState(json) {
+    var u8 = new TextEncoder().encode(json);
+    var plain = function () { return 'p' + bytesToB64(u8); };
+    if (typeof CompressionStream === 'function') {
+      try { return pipeBytes(u8, CompressionStream).then(function (z) { return 'z' + bytesToB64(z); }, plain); } catch (e) {}
+    }
+    return Promise.resolve(plain());
+  }
+  function decodeState(code) {
+    code = String(code).replace(/\s+/g, '');
+    var kind = code.charAt(0), u8;
+    try { u8 = b64ToBytes(code.slice(1)); } catch (e) { return Promise.reject(e); }
+    if (kind === 'z') {
+      if (typeof DecompressionStream !== 'function') return Promise.reject(new Error('no-decompress'));
+      return pipeBytes(u8, DecompressionStream).then(function (r) { return new TextDecoder().decode(r); });
+    }
+    return Promise.resolve(new TextDecoder().decode(u8));
+  }
+  var shareCode = '', shareTimer, shareSeq = 0;
+  function waText(code) {
+    return 'برآورد قیمت نادری\nاین پیام را کامل کپی کنید و در برنامه، بخش «ارسال و دریافت»، بچسبانید.\n\n[[NADERI:' + code + ']]';
+  }
+  function refreshShare() {
+    clearTimeout(shareTimer);
+    shareTimer = setTimeout(function () {
+      var a = document.getElementById('waSend');
+      if (!a) return;
+      var my = ++shareSeq;
+      encodeState(stateJson()).then(function (c) {
+        if (my !== shareSeq) return;
+        shareCode = c;
+        a.href = 'https://wa.me/?text=' + encodeURIComponent(waText(c));
+      }, function () {});
+    }, 300);
+  }
+
+  function build() {
+    var html = '';
+    SECTIONS.forEach(function (sec) {
+      if (sec.prod) { html += PROD_HTML; return; }
+      if (sec.items) { html += ITEMS_HTML; return; }
+      if (sec.backup) { html += BACKUP_HTML; return; }
+      html += '<fieldset class="group"><h2>' + sec.title + '</h2>';
+      if (sec.extras) {
+        html += '<div class="extras">';
+        EXTRAS.forEach(function (e) {
+          html += '<div class="extra"><label class="check"><input type="checkbox" id="on-' + e[0] + '"><span>' + e[1] + '</span></label>' +
+            '<span class="box" id="box-' + e[0] + '"><input id="amt-' + e[0] + '" inputmode="decimal" autocomplete="off" aria-label="مبلغ ' + e[1] + '"><span class="unit">تومان</span></span></div>';
+        });
+        html += '</div>';
+      } else {
+        html += '<div class="fields">';
+        sec.fields.forEach(function (f) {
+          if (f.grade) {
+            html += '<div class="field"><span class="lbl">جنس استیل</span><span class="seg" role="group" aria-label="جنس استیل">' +
+              '<button type="button" data-grade="304" aria-pressed="true">استیل ۳۰۴</button>' +
+              '<button type="button" data-grade="316" aria-pressed="false">استیل ۳۱۶</button></span></div>';
+          } else if (f.vat) {
+            html += '<div class="field"><span class="lbl">مالیات</span><label style="display:flex;align-items:center;gap:10px;min-height:42px"><input type="checkbox" id="vat"><span>افزودن ۱۰٪ مالیات بر ارزش افزوده</span></label></div>';
+          } else {
+            html += '<label class="field" for="f-' + f.k + '"><span class="lbl">' + f.label + '</span><span class="box"><input id="f-' + f.k + '" inputmode="decimal" autocomplete="off"><span class="unit">' + f.unit + '</span></span>' +
+              (f.hint ? '<span class="hint">' + f.hint + '</span>' : '') + '</label>';
+          }
+        });
+        html += '</div>';
+      }
+      html += '</fieldset>';
+    });
+    inputsEl.innerHTML = html;
+    itemsEl = document.getElementById('items');
+    addFromEl = document.getElementById('addFrom');
+    bindItems();
+
+    SECTIONS.forEach(function (sec) {
+      (sec.fields || []).forEach(function (f) {
+        if (!f.k) return;
+        var el = document.getElementById('f-' + f.k);
+        refs[f.k] = { el: el, def: f };
+        el.addEventListener('input', function () {
+          var v = parse(el.value);
+          if (f.k === 'qty' && v < 1) v = 1;
+          if (f.pct && v > 100) v = 100;
+          store(f.s)[f.k] = v;
+          update(true);
+        });
+        el.addEventListener('blur', function () { el.value = show(f, store(f.s)[f.k]); });
+        el.addEventListener('focus', function () { try { el.select(); } catch (e) {} });
+      });
+    });
+
+    EXTRAS.forEach(function (e) {
+      var k = e[0];
+      var on = document.getElementById('on-' + k);
+      var amt = document.getElementById('amt-' + k);
+      on.addEventListener('change', function () { cur().ex[k].on = on.checked ? 1 : 0; update(true); });
+      amt.addEventListener('input', function () { cur().ex[k].amt = parse(amt.value); update(true); });
+      amt.addEventListener('blur', function () { amt.value = fmt(cur().ex[k].amt); });
+      amt.addEventListener('focus', function () { try { amt.select(); } catch (e2) {} });
+    });
+
+    document.getElementById('vat').addEventListener('change', function (ev) { S.sh.vat = ev.target.checked ? 1 : 0; update(true); });
+    inputsEl.querySelectorAll('[data-grade]').forEach(function (b) {
+      b.addEventListener('click', function () { S.sh.grade = b.getAttribute('data-grade'); update(true); });
+    });
+
+    var nameEl = document.getElementById('f-name');
+    nameEl.addEventListener('input', function () { cur().name = nameEl.value; update(true); });
+    nameEl.addEventListener('blur', function () {
+      if (!nameEl.value.trim()) { cur().name = 'محصول'; nameEl.value = 'محصول'; update(true); }
+    });
+    document.getElementById('addP').addEventListener('click', addProduct);
+    document.getElementById('dupP').addEventListener('click', dupProduct);
+    twoStep(document.getElementById('delP'), 'مطمئنید؟ دوباره بزنید', delProduct, function () {
+      if (S.products.length <= 1) { say('حداقل یک محصول باید بماند.'); return false; }
+      return true;
+    });
+
+    var bk = document.getElementById('bk'), bkOut = document.getElementById('bkOut');
+    document.getElementById('bkMake').addEventListener('click', function () {
+      if (!shareCode) { say('چند لحظه صبر کنید و دوباره بزنید.'); return; }
+      var text = waText(shareCode);
+      function manual() {
+        bkOut.value = text; bkOut.hidden = false;
+        try { bkOut.focus(); bkOut.select(); } catch (e) {}
+        say('متن آماده است. آن را انتخاب و کپی کنید.');
+      }
+      try { navigator.clipboard.writeText(text).then(function () { say('متن کپی شد. در واتساپ بچسبانید و بفرستید.'); }, manual); } catch (e) { manual(); }
+    });
+    twoStep(document.getElementById('bkLoad'), 'مطمئنید؟ عددهای فعلی جایگزین می‌شود', function () {
+      var mm = /\[\[NADERI:([\s\S]*?)\]\]/.exec(bk.value);
+      var raw = mm ? mm[1] : bk.value.trim();
+      var job = raw.charAt(0) === '{' ? Promise.resolve(raw) : decodeState(raw);
+      job.then(function (json) {
+        var before = stateJson();
+        if (!loadState(JSON.parse(json))) throw new Error('bad');
+        prevJson = before;
+        try { localStorage.setItem(PREVK, prevJson); } catch (e) {}
+        document.getElementById('bkUndo').hidden = false;
+        bk.value = '';
+        renderAll();
+        say('دریافت شد. عددهای جدید جایگزین شد.');
+      }).catch(function () { say('این پیام معتبر نیست. کل پیام واتساپ را دوباره کپی و بچسبانید.'); });
+    }, function () {
+      if (!bk.value.trim()) { say('اول پیام دریافتی را در کادر بچسبانید.'); return false; }
+      return true;
+    });
+    document.getElementById('bkUndo').addEventListener('click', function () {
+      var obj = null;
+      try { obj = JSON.parse(prevJson); } catch (e) {}
+      if (!loadState(obj)) { say('عددهای قبلی پیدا نشد.'); return; }
+      renderAll();
+      say('به عددهای قبل از دریافت برگشت.');
+    });
+    document.getElementById('fileSend').addEventListener('click', function () {
+      var i = PRISTINE.indexOf(SEED_OPEN), j = i < 0 ? -1 : PRISTINE.indexOf(SEED_CLOSE, i);
+      if (i < 0 || j < 0) { say('ارسال فایل فقط در نسخهٔ فایل برنامه کار می‌کند.'); return; }
+      var stamp = Date.now().toString(36);
+      var data = JSON.stringify({ stamp: stamp, state: JSON.parse(stateJson()) }).replace(/</g, '\\u003c');
+      var html = PRISTINE.slice(0, i + SEED_OPEN.length) + data + PRISTINE.slice(j);
+      var name = 'naderi-estimate-' + stamp + '.html';
+      try { localStorage.setItem(STAMPK, stamp); } catch (e) {}
+      function download() {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+        a.download = name;
+        document.body.appendChild(a); a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+        say('فایل ذخیره شد. آن را از پوشهٔ دانلود در واتساپ بفرستید.');
+      }
+      var file = null;
+      try { file = new File([html], name, { type: 'text/html' }); } catch (e) {}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: 'برآورد قیمت نادری' }).catch(function (e) {
+          if (!e || e.name !== 'AbortError') download();
+        });
+      } else { download(); }
+    });
+    twoStep(document.getElementById('bkReset'), 'مطمئنید؟ همه چیز پاک می‌شود', function () {
+      remember();
+      S.mats = DEF_MATS.map(normMat);
+      S.products = DEF_PRODUCTS.map(normProduct);
+      S.sh = clone(SHARED0);
+      S.pid = S.products[0].id;
+      renderAll();
+      say('همه چیز به نمونه برگشت.');
+    });
+  }
+
+  function fillInputs() {
+    Object.keys(refs).forEach(function (k) {
+      var r = refs[k];
+      r.el.value = show(r.def, store(r.def.s)[k]);
+    });
+    EXTRAS.forEach(function (e) {
+      var d = cur().ex[e[0]];
+      document.getElementById('on-' + e[0]).checked = !!d.on;
+      document.getElementById('amt-' + e[0]).value = fmt(d.amt);
+    });
+    document.getElementById('vat').checked = !!S.sh.vat;
+    document.getElementById('f-name').value = cur().name;
+    renderItems();
+  }
+
+  function calc() {
+    var d = cur(), s = S.sh;
+    var pricePerKg = s.grade === '316' ? s.p316 : s.p304;
+    var steel = d.weight * (1 + s.waste / 100) * pricePerKg;
+    var items = itemsTotal();
+    var material = steel + items;
+    var labor = d.hours * s.rate;
+    var extras = 0;
+    EXTRAS.forEach(function (e) { if (d.ex[e[0]].on) extras += d.ex[e[0]].amt; });
+    var overhead = (material + labor + extras) * s.oh / 100;
+    var cost = material + labor + extras + overhead;
+    var profit = cost * s.profit / 100;
+    var unit = cost + profit;
+    var discAmt = unit * s.disc / 100;
+    var unitNet = unit - discAmt;
+    var qty = Math.max(1, d.qty);
+    var sub = unitNet * qty;
+    var vat = s.vat ? sub * 0.1 : 0;
+    return { steel: steel, items: items, labor: labor, extras: extras, overhead: overhead, profit: profit, cost: cost, unit: unit, discAmt: discAmt, unitNet: unitNet, qty: qty, sub: sub, vat: vat, total: sub + vat };
+  }
+
+  var PARTS = [
+    ['steel', 'استیل', '--c-material'],
+    ['items', 'مواد و قطعات', '--c-parts'],
+    ['labor', 'دستمزد ساخت', '--c-labor'],
+    ['extras', 'اضافات', '--c-extras'],
+    ['overhead', 'سربار', '--c-overhead'],
+    ['profit', 'سود', '--c-profit']
+  ];
+  var pctf = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 });
+
+  function update(persist) {
+    var r = calc();
+    markChips();
+    updateLines();
+    inputsEl.querySelectorAll('[data-grade]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-grade') === S.sh.grade ? 'true' : 'false'); });
+    EXTRAS.forEach(function (e) { document.getElementById('box-' + e[0]).classList.toggle('off', !cur().ex[e[0]].on); });
+
+    document.getElementById('pname').textContent = cur().name || 'بدون نام';
+    document.getElementById('total').textContent = fmt(r.total);
+    document.getElementById('barTotal').textContent = fmt(r.total) + ' تومان';
+    document.getElementById('approx').textContent = '≈ ' + millions(r.total);
+    document.getElementById('qtyLabel').textContent = r.qty > 1 ? '(' + fmt(r.qty) + ' دستگاه)' : '(یک دستگاه)';
+
+    var stack = '', leg = '';
+    PARTS.forEach(function (p) {
+      var v = r[p[0]], share = r.unit > 0 ? v / r.unit * 100 : 0;
+      stack += '<span style="width:' + share.toFixed(2) + '%;background:var(' + p[2] + ')" title="' + p[1] + '"></span>';
+      leg += '<li><i style="background:var(' + p[2] + ')"></i><span>' + p[1] + '</span><span class="amt">' + fmt(v) + '</span><span class="pct">' + pctf.format(share) + PCT + '</span></li>';
+    });
+    document.getElementById('stack').innerHTML = stack;
+    document.getElementById('legend').innerHTML = leg;
+
+    var rows = [
+      ['بهای تمام‌شده هر دستگاه', fmt(r.cost)],
+      ['قیمت هر دستگاه با سود', fmt(r.unit)]
+    ];
+    if (S.sh.disc > 0) rows.push(['قیمت هر دستگاه پس از تخفیف', fmt(r.unitNet)]);
+    if (r.qty > 1) rows.push(['جمع ' + fmt(r.qty) + ' دستگاه', fmt(r.sub)]);
+    if (S.sh.vat) rows.push(['مالیات ارزش افزوده', fmt(r.vat)]);
+    document.getElementById('sum').innerHTML = rows.map(function (x) { return '<div><dt>' + x[0] + '</dt><dd>' + x[1] + '</dd></div>'; }).join('');
+
+    if (persist) { save(); refreshShare(); }
+  }
+
+  function quoteText() {
+    var r = calc(), d = cur(), s = S.sh;
+    var L = [];
+    L.push('پیش‌فاکتور ماشین‌سازی نادری');
+    L.push('دستگاه: ' + (d.name || 'بدون نام'));
+    L.push('تعداد: ' + fmt(r.qty));
+    L.push('قیمت هر دستگاه: ' + fmt(r.unit) + ' تومان');
+    if (s.disc > 0) L.push('تخفیف ' + fmtNum(s.disc) + PCT + ' ← ' + fmt(r.unitNet) + ' تومان');
+    var inc = EXTRAS.filter(function (e) { return d.ex[e[0]].on; }).map(function (e) { return e[1]; });
+    if (inc.length) L.push('شامل: ' + inc.join('، '));
+    if (s.vat) L.push('مالیات ارزش افزوده: ' + fmt(r.vat) + ' تومان');
+    L.push('مبلغ نهایی: ' + fmt(r.total) + ' تومان (' + millions(r.total) + ')');
+    return L.join('\n');
+  }
+
+  var quoteEl = document.getElementById('quote');
+  document.getElementById('copy').addEventListener('click', function () {
+    var t = quoteText();
+    function fallback() {
+      quoteEl.value = t; quoteEl.hidden = false;
+      try { quoteEl.focus(); quoteEl.select(); } catch (e) {}
+      say('متن را انتخاب کنید و کپی کنید.');
+    }
+    try {
+      navigator.clipboard.writeText(t).then(function () { say('متن پیش‌فاکتور کپی شد.'); }, fallback);
+    } catch (e) { fallback(); }
+  });
+
+  /* One-time addition of the 250 kg flour roaster estimate to data saved earlier. */
+  (function seedFlour() {
+    var SEEDK = 'naderi-seed-flour-1', done = '';
+    try { done = localStorage.getItem(SEEDK) || ''; } catch (e) {}
+    if (done === '1') return;
+    if (!byId('flour-roaster')) {
+      DEF_MATS.forEach(function (m) { if (m.id.indexOf('m-fl-') === 0 && !matById(m.id) && S.mats.length < MAXM) S.mats.push(normMat(m)); });
+      DEF_PRODUCTS.forEach(function (p) { if (p.id === 'flour-roaster' && S.products.length < MAXP) S.products.push(normProduct(clone(p))); });
+    }
+    var same = Object.keys(SHARED_OLD).every(function (k) { return S.sh[k] === SHARED_OLD[k]; });
+    if (same) S.sh = clone(SHARED0);
+    if (byId('flour-roaster')) S.pid = 'flour-roaster';
+    try { localStorage.setItem(SEEDK, '1'); } catch (e) {}
+    save();
+  })();
+
+  /* A file received over WhatsApp carries the sender's numbers; load them once per file. */
+  (function loadEmbedded() {
+    var el = document.getElementById('seed');
+    if (!el) return;
+    var d;
+    try { d = JSON.parse(el.textContent); } catch (e) { return; }
+    if (!d || !d.state || !d.stamp) return;
+    var last = '';
+    try { last = localStorage.getItem(STAMPK) || ''; } catch (e) {}
+    if (last === d.stamp) return;
+    var before = stateJson();
+    if (loadState(d.state)) {
+      prevJson = before;
+      try { localStorage.setItem(PREVK, prevJson); localStorage.setItem(STAMPK, d.stamp); } catch (e) {}
+      save();
+    }
+  })();
+
+  build();
+  renderChips();
+  fillInputs();
+  update(false);
+  document.getElementById('fileSend').hidden = !STANDALONE;
+  document.getElementById('bkUndo').hidden = !prevJson;
+  refreshShare();
+})();
+</script>
+<script>
+/* PWA: offline cache. Skipped silently when the file is opened directly (file://) or sent as a standalone copy. */
+(function () {
+  try {
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      });
+    }
+  } catch (e) {}
+})();
+</script>
+
+</body></html>
