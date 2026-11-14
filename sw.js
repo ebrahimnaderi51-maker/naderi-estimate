@@ -2,7 +2,7 @@
    - فایل‌های خود برنامه: فوری از حافظه گوشی باز می‌شود، و در پس‌زمینه نسخه جدید گرفته می‌شود (در بار بعدی باز کردن اعمال می‌شود)
    - فونت‌های گوگل: یک بار که دانلود شد در حافظه می‌ماند؛ اگر نبود حداکثر ۳ ثانیه صبر می‌کند
    وقتی index.html را عوض کردی، عدد VERSION را یکی بالا ببر. */
-var VERSION = 'naderi-v2';
+var VERSION = 'naderi-v3';
 var SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
