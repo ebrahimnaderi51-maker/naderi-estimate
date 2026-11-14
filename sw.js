@@ -1,8 +1,8 @@
 /* Service worker: برآورد قیمت نادری
-   - فایل‌های خود برنامه: اول از اینترنت (تا نسخه جدید برسد)، اگر نبود از حافظه گوشی
-   - فونت‌های گوگل: یک بار که دانلود شد در حافظه می‌ماند
+   - فایل‌های خود برنامه: فوری از حافظه گوشی باز می‌شود، و در پس‌زمینه نسخه جدید گرفته می‌شود (در بار بعدی باز کردن اعمال می‌شود)
+   - فونت‌های گوگل: یک بار که دانلود شد در حافظه می‌ماند؛ اگر نبود حداکثر ۳ ثانیه صبر می‌کند
    وقتی index.html را عوض کردی، عدد VERSION را یکی بالا ببر. */
-var VERSION = 'naderi-v1';
+var VERSION = 'naderi-v2';
 var SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
@@ -17,6 +17,13 @@ self.addEventListener('activate', function (e) {
   );
 });
 
+function withTimeout(promise, ms) {
+  return new Promise(function (resolve, reject) {
+    var t = setTimeout(function () { reject(new Error('timeout')); }, ms);
+    promise.then(function (v) { clearTimeout(t); resolve(v); }, function (err) { clearTimeout(t); reject(err); });
+  });
+}
+
 self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;
@@ -24,11 +31,15 @@ self.addEventListener('fetch', function (e) {
 
   if (url.origin === location.origin) {
     e.respondWith(
-      fetch(req).then(function (res) {
-        if (res && res.ok) { var copy = res.clone(); caches.open(VERSION).then(function (c) { c.put(req, copy); }); }
-        return res;
-      }).catch(function () {
-        return caches.match(req).then(function (hit) { return hit || caches.match('./index.html'); });
+      caches.open(VERSION).then(function (cache) {
+        return cache.match(req, { ignoreSearch: true }).then(function (hit) {
+          var update = fetch(req).then(function (res) {
+            if (res && res.ok) cache.put(req, res.clone());
+            return res;
+          }).catch(function () { return null; });
+          if (hit) { e.waitUntil(update); return hit; }
+          return update.then(function (res) { return res || cache.match('./index.html'); });
+        });
       })
     );
     return;
@@ -36,11 +47,13 @@ self.addEventListener('fetch', function (e) {
 
   if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
     e.respondWith(
-      caches.match(req).then(function (hit) {
-        if (hit) return hit;
-        return fetch(req).then(function (res) {
-          if (res && (res.ok || res.type === 'opaque')) { var copy = res.clone(); caches.open(VERSION).then(function (c) { c.put(req, copy); }); }
-          return res;
+      caches.open(VERSION).then(function (cache) {
+        return cache.match(req).then(function (hit) {
+          if (hit) return hit;
+          return withTimeout(fetch(req), 3000).then(function (res) {
+            if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone());
+            return res;
+          }).catch(function () { return Response.error(); });
         });
       })
     );
