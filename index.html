@@ -656,7 +656,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
         '<button type="button" class="iconbtn" data-act="icon" aria-label="تغییر آیکون" aria-expanded="' + (openPick === m.id) + '">' + svg(m.icon) + '</button>' +
         '<input class="mname" data-f="name" maxlength="60" autocomplete="off" aria-label="نام ماده" value="' + esc(m.name) + '">' +
         '<button type="button" class="xbtn" data-act="del" aria-label="حذف این ردیف">×</button></div>' +
-        '<input class="mspec" data-f="spec" maxlength="120" autocomplete="off" aria-label="مشخصات" placeholder="مشخصات (مثلاً ۳ کیلووات، ۱۴۰۰ دور)" value="' + esc(m.spec) + '">' +
+        '<input class="mspec" data-f="spec" maxlength="120" autocomplete="off" aria-label="مشخصات" placeholder="مشخصات " value="' + esc(m.spec) + '">' +
         '<div class="mcalc">' +
         '<label class="field"><span class="lbl">مقدار</span><span class="box"><input data-f="qty" inputmode="decimal" autocomplete="off" aria-label="مقدار" value="' + fmtQ(it.qty) + '">' +
         '<span class="unit"><select data-f="unit" aria-label="واحد">' +
