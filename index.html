@@ -215,7 +215,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
   <header>
     <p class="eyebrow">ماشین‌سازی نادری · naderi.co</p>
     <h1>برآورد قیمت ماشین‌آلات</h1>
-    <p class="lede">طراح و سازنده ماشین الات صنایع غذایی</p>
+    <p class="lede">طراح و سازنده ماشین‌آلات صنایع غذایی</p>
   </header>
 
   <div class="chips" id="chips" aria-label="محصولات"></div>
@@ -372,6 +372,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       id: String(p.id || newId()),
       name: String(p.name || '').slice(0, 60) || 'محصول',
       weight: num(p.weight), hours: num(p.hours),
+      steel: p.steel === 0 || p.steel === false ? 0 : 1,
       qty: Math.max(1, num(p.qty) || 1),
       items: items,
       ex: e
@@ -503,7 +504,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
 
   var SECTIONS = [
     { prod: 1 },
-    { title: 'استیل', fields: [
+    { title: 'استیل', steelToggle: 1, fields: [
       { k: 'weight', s: 'pp', label: 'وزن استیل مصرفی', unit: 'کیلوگرم', dec: 1, hint: 'قبل از ضایعات' },
       { k: 'waste', s: 'sh', label: 'ضایعات برش و خم استیل', unit: PCT, pct: 1 },
       { k: 'p304', s: 'sh', label: 'قیمت هر کیلو استیل ۳۰۴', unit: 'تومان' },
@@ -815,7 +816,10 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
         });
         html += '</div>';
       } else {
-        html += '<div class="fields">';
+        if (sec.steelToggle) {
+          html += '<label class="check" style="display:flex;align-items:center;gap:10px;min-height:42px;margin-bottom:8px"><input type="checkbox" id="on-steel"><span>این دستگاه از استیل استفاده می‌کند</span></label>';
+        }
+        html += '<div class="fields"' + (sec.steelToggle ? ' id="steelFields"' : '') + '>';
         sec.fields.forEach(function (f) {
           if (f.grade) {
             html += '<div class="field"><span class="lbl">جنس استیل</span><span class="seg" role="group" aria-label="جنس استیل">' +
@@ -865,6 +869,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     });
 
     document.getElementById('vat').addEventListener('change', function (ev) { S.sh.vat = ev.target.checked ? 1 : 0; update(true); });
+    document.getElementById('on-steel').addEventListener('change', function (ev) { cur().steel = ev.target.checked ? 1 : 0; update(true); });
     inputsEl.querySelectorAll('[data-grade]').forEach(function (b) {
       b.addEventListener('click', function () { S.sh.grade = b.getAttribute('data-grade'); update(true); });
     });
@@ -970,7 +975,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
   function calc() {
     var d = cur(), s = S.sh;
     var pricePerKg = s.grade === '316' ? s.p316 : s.p304;
-    var steel = d.weight * (1 + s.waste / 100) * pricePerKg;
+    var steel = d.steel ? d.weight * (1 + s.waste / 100) * pricePerKg : 0;
     var items = itemsTotal();
     var material = steel + items;
     var labor = d.hours * s.rate;
@@ -1004,6 +1009,8 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     updateLines();
     inputsEl.querySelectorAll('[data-grade]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-grade') === S.sh.grade ? 'true' : 'false'); });
     EXTRAS.forEach(function (e) { document.getElementById('box-' + e[0]).classList.toggle('off', !cur().ex[e[0]].on); });
+    document.getElementById('on-steel').checked = !!cur().steel;
+    document.getElementById('steelFields').hidden = !cur().steel;
 
     document.getElementById('pname').textContent = cur().name || 'بدون نام';
     document.getElementById('total').textContent = fmt(r.total);
@@ -1013,6 +1020,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
 
     var stack = '', leg = '';
     PARTS.forEach(function (p) {
+      if (p[0] === 'steel' && !cur().steel) return;
       var v = r[p[0]], share = r.unit > 0 ? v / r.unit * 100 : 0;
       stack += '<span style="width:' + share.toFixed(2) + '%;background:var(' + p[2] + ')" title="' + p[1] + '"></span>';
       leg += '<li><i style="background:var(' + p[2] + ')"></i><span>' + p[1] + '</span><span class="amt">' + fmt(v) + '</span><span class="pct">' + pctf.format(share) + PCT + '</span></li>';
