@@ -210,6 +210,71 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
 .bar span { font-size: 13px; color: var(--panel-muted); }
 .bar strong { font-family: var(--font-display); font-weight: 400; font-size: 24px; font-variant-numeric: tabular-nums; }
 @media (min-width: 900px) { .bar { display: none; } body { padding-block-end: 32px; } }
+
+/* ---- compact one-line rows + drawers ---- */
+.wrap { gap: 14px; }
+.inputs { gap: 10px; }
+.group { padding: 12px 14px; }
+.group h2 { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; }
+.sv { font-variant-numeric: tabular-nums; font-weight: 500; color: var(--muted); font-size: 14px; white-space: nowrap; }
+.sv small { font-size: 11px; }
+.acc { padding-block: 4px; }
+.acc > summary { display: flex; align-items: center; gap: 10px; min-height: 44px; list-style: none; cursor: pointer; }
+.acc > summary::-webkit-details-marker { display: none; }
+.acc > summary .st { flex: 1; min-width: 0; font-weight: 700; }
+.acc > summary::after { content: '‹'; font-size: 22px; line-height: 1; color: var(--muted); transition: transform .15s; }
+.acc[open] > summary::after { transform: rotate(-90deg); }
+.acc[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.acc-body { padding-bottom: 8px; }
+.mlist { gap: 6px; }
+.mrow { padding: 0; gap: 0; border-radius: 8px; overflow: hidden; }
+.mtog { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 6px 10px; border: 0; background: transparent; color: var(--ink); font: inherit; text-align: start; cursor: pointer; }
+.mtog svg { flex: none; color: var(--accent); }
+.mt-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.mt-name small { color: var(--muted); font-size: 12px; font-weight: 400; margin-inline-start: 6px; }
+.mt-amt { white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mt-amt small { font-weight: 400; color: var(--muted); font-size: 11px; }
+.mtog::after { content: '‹'; font-size: 20px; line-height: 1; color: var(--muted); transition: transform .15s; }
+.mrow.open .mtog::after, .xrow.open .xtog::after { transform: rotate(-90deg); }
+.mrow.open .mtog { background: var(--accent-soft); }
+.mbody { display: none; flex-direction: column; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }
+.mrow.open .mbody { display: flex; }
+.mclose { align-self: flex-start; }
+.xlist { display: flex; flex-direction: column; gap: 6px; }
+.xrow { border: 1px solid var(--line); border-radius: 8px; background: var(--field); overflow: hidden; }
+.xtog { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 10px; cursor: pointer; }
+.xtog .xn { flex: 1; min-width: 0; font-weight: 500; }
+.xtog .xamt { white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; }
+.xtog .xamt.off { font-weight: 400; color: var(--muted); }
+.xtog::after { content: '‹'; font-size: 20px; line-height: 1; color: var(--muted); transition: transform .15s; }
+.xtog:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.xbody { display: none; padding: 10px; border-top: 1px solid var(--line); }
+.xrow.open .xbody { display: block; }
+/* ---- compact pass ---- */
+.acc > summary .sv { min-width: 0; max-width: 62%; overflow: hidden; text-overflow: ellipsis; }
+#addFrom { flex: 1 1 0; min-width: 0; text-overflow: ellipsis; }
+#addNew { flex: none; white-space: nowrap; }
+.result .pname, .result #status { display: none; }
+body { padding-block-start: 12px; }
+h1 { font-size: clamp(22px, 5.5vw, 30px); margin: 0 0 2px; }
+.lede { font-size: 13px; }
+.chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.chip { flex: none; white-space: nowrap; min-height: 38px; padding: 4px 14px; }
+.group { padding: 10px 12px; }
+.group h2 { margin-bottom: 6px; }
+.mlist, .xlist { gap: 4px; }
+.mtog, .xtog { min-height: 40px; padding: 4px 10px; }
+.acc > summary { min-height: 40px; }
+.row .sbtn { min-height: 38px; padding: 6px 12px; flex: 1; }
+.row { margin-top: 8px; }
+.result { padding: 14px; gap: 12px; }
+.legend { gap: 3px; }
+.legend li { font-size: 13px; }
+.legend .pct { display: none; }
+.total { font-size: clamp(30px, 8vw, 40px); }
+#toast { position: fixed; inset-inline: 16px; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); z-index: 6; margin-inline: auto; max-width: 480px; background: var(--panel); color: var(--panel-ink); border-radius: 10px; padding: 10px 14px; font-size: 13px; text-align: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+#toast.show { opacity: 1; }
+@media (min-width: 900px) { #toast { bottom: 24px; } }
 @media (prefers-reduced-motion: reduce) { .stack span { transition: none; } }
 </style>
 
@@ -244,9 +309,10 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     </aside>
   </div>
 
-  <p class="note">سود به‌صورت درصدی از بهای تمام‌شده محاسبه می‌شود (نه از قیمت فروش). سربار روی مجموع مواد، دستمزد و اضافات اعمال می‌شود. عددهای شما فقط در همین مرورگر ذخیره می‌شوند. برای انتقال به گوشی یا مرورگر دیگر از بخش پشتیبان‌گیری استفاده کنید.</p>
+  
 </div>
 
+<div id="toast" role="status" aria-live="polite"></div>
 <div class="bar" id="bar"><span>قیمت نهایی</span><strong id="barTotal">۰</strong></div>
 
 <script>
@@ -550,39 +616,38 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
 
   var PCT = '٪';
   var PROD_HTML =
-    '<fieldset class="group"><h2>محصول</h2>' +
+    '<details class="group acc" id="g-prod"><summary><span class="st">محصول</span><span class="sv" id="sv-prod"></span></summary><div class="acc-body">' +
     '<div class="fields"><label class="field" for="f-name"><span class="lbl">نام محصول</span>' +
     '<span class="box"><input id="f-name" type="text" maxlength="60" autocomplete="off"></span></label></div>' +
     '<div class="row">' +
     '<button class="sbtn" id="addP" type="button">+ محصول جدید</button>' +
     '<button class="sbtn" id="dupP" type="button">کپی این محصول</button>' +
     '<button class="sbtn danger" id="delP" type="button">حذف این محصول</button></div>' +
-    '<p class="status" id="pstatus" role="status"></p></fieldset>';
+    '<p class="status" id="pstatus" role="status"></p></div></details>';
   var ITEMS_HTML =
-    '<fieldset class="group"><h2>مواد و قطعات</h2>' +
-    '<p class="hint" style="margin-bottom:12px">هر ردیف مقدار را در قیمت واحد ضرب می‌کند و جمع همه به قیمت اضافه می‌شود. مقدار فولاد را با ضایعات وارد کنید. نام، آیکون و قیمت هر ماده برای همهٔ محصولات یکی است و مقدارش برای هر محصول جداست.</p>' +
+    '<fieldset class="group"><h2><span>مواد و قطعات</span><span class="sv"><b id="itemsSum">۰</b> تومان</span></h2>' +
     '<ul class="mlist" id="items"></ul>' +
     '<div class="row"><select class="sbtn" id="addFrom" aria-label="افزودن ماده از لیست"></select>' +
-    '<button class="sbtn" id="addNew" type="button">+ ماده جدید</button></div>' +
-    '<div class="mfoot"><span>جمع مواد و قطعات</span><span><span id="itemsSum">۰</span> تومان</span></div></fieldset>';
+    '<button class="sbtn" id="addNew" type="button">+ ماده جدید</button></div></fieldset>';
   var BACKUP_HTML =
-    '<details class="group" id="backup" open><summary>ارسال و دریافت با واتساپ</summary>' +
+    '<details class="group acc" id="backup"><summary><span class="st">ارسال و دریافت با واتساپ</span></summary><div class="acc-body">' +
     '<p class="hint" style="margin-top:10px">برای فرستادن عددهای فعلی به شریک‌تان، دکمهٔ واتساپ را بزنید و مخاطب را انتخاب کنید. او پیام را کامل کپی می‌کند و در همین بخش می‌چسباند. هر دو نفر می‌توانید عددها را عوض کنید و برای هم بفرستید.</p>' +
     '<div class="row">' +
     '<a class="sbtn wa" id="waSend" href="https://wa.me/" target="_blank" rel="noopener">ارسال به واتساپ</a>' +
     '<button class="sbtn" id="bkMake" type="button">کپی متن برای ارسال</button>' +
     '<button class="sbtn" id="fileSend" type="button" hidden>ارسال فایل برنامه</button></div>' +
     '<textarea class="quote fa" id="bkOut" readonly hidden aria-label="متن آماده ارسال"></textarea>' +
-    '<p class="lbl" style="margin:18px 0 6px">دریافت: پیام شریک را اینجا بچسبانید</p>' +
+    '<p class="lbl" style="margin:18px 0 6px">دریافت: پیام شریک یا پیام «دستگاه جدید» را اینجا بچسبانید</p>' +
     '<textarea class="quote fa" id="bk" spellcheck="false" aria-label="پیام دریافتی"></textarea>' +
     '<div class="row">' +
     '<button class="sbtn" id="bkLoad" type="button">دریافت عددها از پیام</button>' +
     '<button class="sbtn" id="bkUndo" type="button" hidden>برگشت به عددهای قبل از دریافت</button>' +
     '<button class="sbtn danger" id="bkReset" type="button">بازگردانی همه چیز به نمونه</button></div>' +
-    '<p class="status" id="bstatus" role="status"></p></details>';
+    '<p class="status" id="bstatus" role="status"></p>' +
+    '<p class="note" style="margin-top:10px">سود از بهای تمام‌شده حساب می‌شود (نه از قیمت فروش). سربار روی مواد، دستمزد و اضافات اعمال می‌شود. عددها فقط روی همین گوشی ذخیره می‌شوند و برای انتقال از همین بخش استفاده کن.</p></div></details>';
 
   function quoteHtml() {
-    var h = '<fieldset class="group" id="quoteBox"><h2>پیش‌فاکتور</h2>' +
+    var h = '<details class="group acc" id="quoteBox"><summary><span class="st">پیش‌فاکتور</span><span class="sv" id="sv-quote">نمایش، ویرایش و ارسال</span></summary><div class="acc-body">' +
       '<p class="hint" style="margin-bottom:12px">متن پیش‌فاکتور از برآورد همین دستگاه ساخته می‌شود. هر جای متن را می‌توانی ویرایش کنی. تا وقتی ویرایش نکرده‌ای، با تغییر عددها خودش به‌روز می‌شود. مشخصات قطعات را در ردیف مواد بنویس تا در پیش‌فاکتور بیاید.</p><div class="fields">';
     QF.forEach(function (f) {
       h += '<label class="field" for="q-' + f[0] + '"><span class="lbl">' + f[1] + '</span><span class="box"><input id="q-' + f[0] + '" type="text" maxlength="300" autocomplete="off"></span></label>';
@@ -591,22 +656,22 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       '<div class="row"><button class="sbtn wa" id="qCopy" type="button">کپی متن</button>' +
       '<button class="sbtn" id="qWa" type="button">ارسال در واتساپ</button>' +
       '<button class="sbtn" id="qReset" type="button">ساخت دوباره متن</button></div>' +
-      '<p class="status" id="qstatus" role="status"></p></fieldset>';
+      '<p class="status" id="qstatus" role="status"></p></div></details>';
     return h;
   }
   var SECTIONS = [
     { prod: 1 },
     { items: 1 },
-    { title: 'ساخت', fields: [
+    { title: 'ساخت (دستمزد)', key: 'labor', fields: [
       { k: 'hours', s: 'pp', label: 'ساعت کار تولید', unit: 'ساعت', hint: 'برش، جوش، پولیش و مونتاژ' },
       { k: 'rate', s: 'sh', label: 'نرخ هر ساعت کار', unit: 'تومان' }
     ] },
     { title: 'اضافات', extras: 1 },
-    { title: 'سربار و سود', fields: [
+    { title: 'سربار و سود', key: 'oh', fields: [
       { k: 'oh', s: 'sh', label: 'سربار کارگاه (برق، اجاره، اداری)', unit: PCT, pct: 1 },
       { k: 'profit', s: 'sh', label: 'سود روی بهای تمام‌شده', unit: PCT, pct: 1 }
     ] },
-    { title: 'فروش', fields: [
+    { title: 'فروش (تعداد، تخفیف، مالیات)', key: 'sale', fields: [
       { k: 'qty', s: 'pp', label: 'تعداد دستگاه', unit: 'دستگاه' },
       { k: 'disc', s: 'sh', label: 'تخفیف', unit: PCT, pct: 1 },
       { vat: 1 }
@@ -618,16 +683,18 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
   var inputsEl = document.getElementById('inputs');
   var chipsEl = document.getElementById('chips');
   var refs = {};
-  var itemsEl, addFromEl, openPick = null;
+  var itemsEl, addFromEl, openPick = null, openMat = null;
 
   function show(f, v) { return (f.pct || f.dec) ? fmtNum(v) : fmt(v); }
 
-  var tmr;
+  var tmr, toastT;
   function say(t) {
-    ['status', 'pstatus', 'bstatus', 'qstatus'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = t; });
+    var tt = document.getElementById('toast');
+    if (tt && t) { tt.textContent = t; tt.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { tt.classList.remove('show'); }, 3500); }
+    ['pstatus', 'bstatus', 'qstatus'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = t; });
     clearTimeout(tmr);
     tmr = setTimeout(function () {
-      ['status', 'pstatus', 'bstatus', 'qstatus'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = ''; });
+      ['pstatus', 'bstatus', 'qstatus'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = ''; });
     }, 3500);
   }
 
@@ -647,7 +714,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     S.products.forEach(function (p) {
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'chip'; b.setAttribute('data-id', p.id);
-      b.addEventListener('click', function () { S.pid = p.id; openPick = null; fillInputs(); update(true); });
+      b.addEventListener('click', function () { S.pid = p.id; openPick = null; openMat = null; fillInputs(); update(true); });
       chipsEl.appendChild(b);
     });
     var a = document.createElement('button');
@@ -667,7 +734,47 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     }
   }
 
-  function renderAll() { openPick = null; renderChips(); fillInputs(); update(true); }
+  /* Add ONE machine from a pasted message: [[NADERI-ADD:{...json...}]]. Never touches existing prices or machines. */
+  function normName(x) {
+    return String(x || '').replace(/ي/g, 'ی').replace(/ك/g, 'ک')
+      .replace(/[۰-۹]/g, function (d) { return FA.indexOf(d); })
+      .replace(/[٠-٩]/g, function (d) { return d.charCodeAt(0) - 1632; })
+      .replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+  function addFromMessage(raw) {
+    var obj;
+    try { obj = JSON.parse(raw); } catch (e) { say('این پیام معتبر نیست. کل پیام را دوباره کپی و بچسبانید.'); return; }
+    var pr = obj && obj.product;
+    if (!pr || !Array.isArray(pr.items) || !pr.items.length || !String(pr.name || '').trim()) { say('در پیام نام دستگاه یا ردیف مواد پیدا نشد.'); return; }
+    if (S.products.length >= MAXP) { say('تعداد محصولات به حداکثر رسیده است.'); return; }
+    var byName = {};
+    S.mats.forEach(function (m) { byName[normName(m.name)] = m; });
+    var items = [], made = 0, byMid = {};
+    pr.items.slice(0, 100).forEach(function (it) {
+      if (!it || !String(it.name || '').trim()) return;
+      var key = normName(it.name), m = byName[key];
+      if (!m) {
+        if (S.mats.length >= MAXM) return;
+        m = normMat({ id: newId(), name: String(it.name).trim(), icon: 'box', unit: it.unit, price: it.price, spec: it.spec });
+        S.mats.push(m); byName[key] = m; made++;
+      } else if (!m.spec && it.spec) {
+        m.spec = String(it.spec).slice(0, 120);
+      }
+      if (byMid[m.id]) { byMid[m.id].qty += num(it.qty); return; }
+      var row = { mid: m.id, qty: num(it.qty) };
+      byMid[m.id] = row; items.push(row);
+    });
+    if (!items.length) { say('هیچ ردیف معتبری در پیام نبود.'); return; }
+    var ex = {};
+    EXTRAS.forEach(function (e) { var a = num(pr.extras && pr.extras[e[0]]); ex[e[0]] = { on: a > 0 ? 1 : 0, amt: a }; });
+    var p = normProduct({ id: newId(), name: pr.name, hours: pr.hours, qty: pr.qty, items: items, ex: ex });
+    S.products.push(p);
+    S.pid = p.id;
+    var bk = document.getElementById('bk'); if (bk) bk.value = '';
+    renderAll();
+    say('دستگاه «' + p.name + '» اضافه شد. ' + (made ? fmt(made) + ' ماده جدید ساخته شد. ' : '') + 'قیمت مواد موجود تغییر نکرد.');
+  }
+  function renderAll() { openPick = null; openMat = null; renderChips(); fillInputs(); update(true); }
 
   function addProduct() {
     if (S.products.length >= MAXP) { say('حداکثر ' + fmt(MAXP) + ' محصول می‌شود ساخت.'); return; }
@@ -704,8 +811,9 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       var m = matById(it.mid);
       if (!m) return;
       var id = esc(m.id);
-      html += '<li class="mrow" data-mid="' + id + '">' +
-        '<div class="mhead">' +
+      html += '<li class="mrow' + (openMat === m.id ? ' open' : '') + '" data-mid="' + id + '">' +
+        '<button type="button" class="mtog" data-act="tog" aria-expanded="' + (openMat === m.id) + '">' + svg(m.icon) + '<span class="mt-name"></span><span class="mt-amt"></span></button>' +
+        '<div class="mbody"><div class="mhead">' +
         '<button type="button" class="iconbtn" data-act="icon" aria-label="تغییر آیکون" aria-expanded="' + (openPick === m.id) + '">' + svg(m.icon) + '</button>' +
         '<input class="mname" data-f="name" maxlength="60" autocomplete="off" aria-label="نام ماده" value="' + esc(m.name) + '">' +
         '<button type="button" class="xbtn" data-act="del" aria-label="حذف این ردیف">×</button></div>' +
@@ -724,7 +832,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
             return '<button type="button" class="pick" data-act="pick" data-icon="' + k + '" title="' + ICONS[k].n + '" aria-label="' + ICONS[k].n + '" aria-pressed="' + (k === m.icon) + '">' + svg(k) + '</button>';
           }).join('') + '</div>';
       }
-      html += '</li>';
+      html += '<button type="button" class="sbtn mclose" data-act="close">تأیید و بستن</button></div></li>';
     });
     itemsEl.innerHTML = html || '<li class="hint">هنوز ماده‌ای اضافه نشده. از دکمه‌های پایین استفاده کنید.</li>';
 
@@ -751,16 +859,45 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     for (var i = 0; i < rows.length; i++) {
       var it = rowItem(rows[i]), m = it && matById(it.mid);
       if (!m) continue;
-      rows[i].querySelector('.line').textContent = '= ' + fmt(it.qty * m.price) + ' تومان';
+      var tot = fmt(it.qty * m.price);
+      rows[i].querySelector('.line').textContent = '= ' + tot + ' تومان';
+      rows[i].querySelector('.mt-name').textContent = m.name;
+      rows[i].querySelector('.mt-amt').innerHTML = tot + ' <small>تومان</small>';
     }
     var s = document.getElementById('itemsSum');
     if (s) s.textContent = fmt(itemsTotal());
   }
+  function closeMat() {
+    openMat = null; openPick = null;
+    var rows = itemsEl.querySelectorAll('.mrow.open');
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].classList.remove('open');
+      rows[i].querySelector('.mtog').setAttribute('aria-expanded', 'false');
+      var pk = rows[i].querySelector('.picker'); if (pk) pk.remove();
+      var ib = rows[i].querySelector('.iconbtn'); if (ib) ib.setAttribute('aria-expanded', 'false');
+    }
+  }
+  function toggleMat(mid) {
+    var rows = itemsEl.querySelectorAll('.mrow'), target = null;
+    for (var i = 0; i < rows.length; i++) if (rows[i].getAttribute('data-mid') === mid) target = rows[i];
+    if (!target) return;
+    var was = target.classList.contains('open');
+    closeMat();
+    if (!was) {
+      openMat = mid;
+      target.classList.add('open');
+      target.querySelector('.mtog').setAttribute('aria-expanded', 'true');
+      try { target.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+    }
+  }
   function addItem(mid) {
     var d = cur();
     d.items.push({ mid: mid, qty: 1 });
+    openMat = mid;
     renderItems();
     update(true);
+    var rows = itemsEl.querySelectorAll('.mrow'), last = rows[rows.length - 1];
+    if (last) { try { last.scrollIntoView({ block: 'center' }); } catch (e) {} }
   }
   function addNewMaterial() {
     if (S.mats.length >= MAXM) { say('تعداد مواد به حداکثر رسیده است.'); return; }
@@ -814,6 +951,8 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       var row = b.closest('.mrow'), it = row && rowItem(row), m = it && matById(it.mid);
       if (!m) return;
       var act = b.getAttribute('data-act');
+      if (act === 'tog') { toggleMat(m.id); return; }
+      if (act === 'close') { closeMat(); return; }
       if (act === 'icon') { openPick = openPick === m.id ? null : m.id; renderItems(); }
       else if (act === 'pick') { m.icon = b.getAttribute('data-icon'); openPick = null; renderItems(); update(true); }
       else if (act === 'del') {
@@ -822,6 +961,9 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
         if (openPick === m.id) openPick = null;
         renderItems(); update(true);
       }
+    });
+    itemsEl.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target.matches && e.target.matches('input, select')) { e.preventDefault(); try { e.target.blur(); } catch (x) {} closeMat(); }
     });
     addFromEl.addEventListener('change', function () {
       var v = addFromEl.value;
@@ -896,16 +1038,16 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       if (sec.items) { html += ITEMS_HTML; return; }
       if (sec.backup) { html += BACKUP_HTML; return; }
       if (sec.quote) { html += quoteHtml(); return; }
-      html += '<fieldset class="group"><h2>' + sec.title + '</h2>';
       if (sec.extras) {
-        html += '<div class="extras">';
+        html += '<fieldset class="group"><h2><span>' + sec.title + '</span><span class="sv"><b id="extrasSum">۰</b> تومان</span></h2><div class="xlist" id="xlist">';
         EXTRAS.forEach(function (e) {
-          html += '<div class="extra"><label class="check"><input type="checkbox" id="on-' + e[0] + '"><span>' + e[1] + '</span></label>' +
-            '<span class="box" id="box-' + e[0] + '"><input id="amt-' + e[0] + '" inputmode="decimal" autocomplete="off" aria-label="مبلغ ' + e[1] + '"><span class="unit">تومان</span></span></div>';
+          html += '<div class="xrow" data-k="' + e[0] + '"><div class="xtog" role="button" tabindex="0" aria-expanded="false" data-act="xtog">' +
+            '<input type="checkbox" id="on-' + e[0] + '" aria-label="فعال بودن ' + e[1] + '"><span class="xn">' + e[1] + '</span><span class="xamt" id="xa-' + e[0] + '"></span></div>' +
+            '<div class="xbody"><span class="box" id="box-' + e[0] + '"><input id="amt-' + e[0] + '" inputmode="decimal" autocomplete="off" aria-label="مبلغ ' + e[1] + '"><span class="unit">تومان</span></span></div></div>';
         });
-        html += '</div>';
+        html += '</div></fieldset>';
       } else {
-        html += '<div class="fields">';
+        html += '<details class="group acc" id="g-' + sec.key + '"><summary><span class="st">' + sec.title + '</span><span class="sv" id="sv-' + sec.key + '"></span></summary><div class="acc-body"><div class="fields">';
         sec.fields.forEach(function (f) {
           if (f.vat) {
             html += '<div class="field"><span class="lbl">مالیات</span><label style="display:flex;align-items:center;gap:10px;min-height:42px"><input type="checkbox" id="vat"><span>افزودن ۱۰٪ مالیات بر ارزش افزوده</span></label></div>';
@@ -914,9 +1056,8 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
               (f.hint ? '<span class="hint">' + f.hint + '</span>' : '') + '</label>';
           }
         });
-        html += '</div>';
+        html += '</div></div></details>';
       }
-      html += '</fieldset>';
     });
     inputsEl.innerHTML = html;
     itemsEl = document.getElementById('items');
@@ -940,6 +1081,31 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       });
     });
 
+    var xl = document.getElementById('xlist');
+    function closeX() {
+      var o = xl.querySelectorAll('.xrow.open');
+      for (var i = 0; i < o.length; i++) { o[i].classList.remove('open'); o[i].querySelector('.xtog').setAttribute('aria-expanded', 'false'); }
+    }
+    function toggleX(row) {
+      var was = row.classList.contains('open');
+      closeX();
+      if (!was) { row.classList.add('open'); row.querySelector('.xtog').setAttribute('aria-expanded', 'true'); var a = row.querySelector('input[id^=amt-]'); try { a.focus(); } catch (x) {} }
+    }
+    xl.addEventListener('click', function (e) {
+      if (e.target.matches && e.target.matches('input[type=checkbox]')) return;
+      var t = e.target.closest('.xtog'); if (t) toggleX(t.parentNode);
+    });
+    xl.addEventListener('keydown', function (e) {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('xtog')) { e.preventDefault(); toggleX(e.target.parentNode); }
+      else if (e.key === 'Enter' && e.target.matches && e.target.matches('input[id^=amt-]')) { e.preventDefault(); e.target.blur(); closeX(); }
+    });
+    inputsEl.addEventListener('toggle', function (e) {
+      var t = e.target;
+      if (t && t.classList && t.classList.contains('acc') && t.open) {
+        var all = inputsEl.querySelectorAll('details.acc[open]');
+        for (var i = 0; i < all.length; i++) if (all[i] !== t) all[i].open = false;
+      }
+    }, true);
     EXTRAS.forEach(function (e) {
       var k = e[0];
       var on = document.getElementById('on-' + k);
@@ -1006,6 +1172,8 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       }).catch(function () { say('این پیام معتبر نیست. کل پیام واتساپ را دوباره کپی و بچسبانید.'); });
     }, function () {
       if (!bk.value.trim()) { say('اول پیام دریافتی را در کادر بچسبانید.'); return false; }
+      var am = /\[\[NADERI-ADD:([\s\S]*?)\]\]/.exec(bk.value);
+      if (am) { addFromMessage(am[1]); return false; }
       return true;
     });
     document.getElementById('bkUndo').addEventListener('click', function () {
@@ -1100,7 +1268,17 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     var r = calc();
     markChips();
     updateLines();
-    EXTRAS.forEach(function (e) { document.getElementById('box-' + e[0]).classList.toggle('off', !cur().ex[e[0]].on); });
+    EXTRAS.forEach(function (e) {
+      var x = cur().ex[e[0]], xa = document.getElementById('xa-' + e[0]);
+      document.getElementById('box-' + e[0]).classList.toggle('off', !x.on);
+      xa.classList.toggle('off', !x.on);
+      xa.innerHTML = x.on ? fmt(x.amt) + ' <small>تومان</small>' : 'غیرفعال';
+    });
+    document.getElementById('extrasSum').textContent = fmt(r.extras);
+    document.getElementById('sv-prod').textContent = cur().name || 'بدون نام';
+    document.getElementById('sv-labor').innerHTML = fmt(r.labor) + ' <small>تومان</small>';
+    document.getElementById('sv-oh').innerHTML = fmt(r.overhead + r.profit) + ' <small>تومان</small>';
+    document.getElementById('sv-sale').textContent = (r.qty > 1 ? fmt(r.qty) + ' دستگاه' : 'یک دستگاه') + (S.sh.disc > 0 ? ' · تخفیف ' + fmtNum(S.sh.disc) + PCT : '') + (S.sh.vat ? ' · مالیات' : '');
 
     document.getElementById('pname').textContent = cur().name || 'بدون نام';
     document.getElementById('total').textContent = fmt(r.total);
@@ -1111,6 +1289,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     var stack = '', leg = '';
     PARTS.forEach(function (p) {
       var v = r[p[0]], share = r.unit > 0 ? v / r.unit * 100 : 0;
+      if (!v) return;
       stack += '<span style="width:' + share.toFixed(2) + '%;background:var(' + p[2] + ')" title="' + p[1] + '"></span>';
       leg += '<li><i style="background:var(' + p[2] + ')"></i><span>' + p[1] + '</span><span class="amt">' + fmt(v) + '</span><span class="pct">' + pctf.format(share) + PCT + '</span></li>';
     });
@@ -1176,6 +1355,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
 
   document.getElementById('qGo').addEventListener('click', function () {
     var el = document.getElementById('quoteBox');
+    el.open = true;
     try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { el.scrollIntoView(); }
   });
   var quoteEl = document.getElementById('quote');
