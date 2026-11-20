@@ -152,6 +152,8 @@ select.sbtn { max-width: 100%; }
 .pick[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .mname { flex: 1; min-width: 0; border: 0; border-bottom: 1px dashed var(--line); background: transparent; color: var(--ink); font: inherit; font-weight: 700; padding: 6px 4px; min-height: 42px; outline: none; }
 .mname:focus { border-bottom-color: var(--accent); }
+.mspec { width: 100%; border: 0; border-bottom: 1px dashed var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 13px; padding: 4px; min-height: 34px; outline: none; }
+.mspec:focus { border-bottom-color: var(--accent); color: var(--ink); }
 .xbtn { flex: none; width: 42px; height: 42px; border: 0; background: transparent; color: var(--muted); font-size: 24px; line-height: 1; cursor: pointer; border-radius: 8px; }
 .xbtn:hover { color: var(--danger); }
 .mcalc { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: end; }
@@ -319,6 +321,10 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     { id: 'm-motor', name: 'موتور و گیربکس', icon: 'motor', unit: 'ست', price: 30000000 },
     { id: 'm-bearing', name: 'بلبرینگ و یاتاقان', icon: 'bearing', unit: 'عدد', price: 1000000 },
     { id: 'm-misc', name: 'پیچ، مهره و اتصالات', icon: 'nut', unit: 'ست', price: 5000000 },
+    { id: 'm-steel304', name: 'استیل ۳۰۴', icon: 'sheet', unit: 'کیلوگرم', price: 1500000 },
+    { id: 'm-steel316', name: 'استیل ۳۱۶', icon: 'sheet', unit: 'کیلوگرم', price: 2250000 },
+    { id: 'm-emotor', name: 'الکتروموتور (دینام)', icon: 'motor', unit: 'عدد', price: 0 },
+    { id: 'm-gearbox', name: 'گیربکس', icon: 'gear', unit: 'عدد', price: 0 },
     { id: 'm-fl-steel', name: 'فولاد ساده (شاسی و پایه)', icon: 'profile', unit: 'کیلوگرم', price: 100000 },
     { id: 'm-fl-insul', name: 'عایق و کوره (فایبر و ورق)', icon: 'box', unit: 'ست', price: 15000000 },
     { id: 'm-fl-drive', name: 'موتور، گیربکس، اینورتر و یاتاقان', icon: 'motor', unit: 'ست', price: 95000000 },
@@ -345,6 +351,39 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
   var SHARED0 = { p304: 1500000, p316: 2250000, grade: '304', waste: 15, rate: 250000, oh: 8, profit: 40, disc: 0, vat: 0 };
   var SHARED_OLD = { p304: 450000, p316: 750000, grade: '304', waste: 8, rate: 150000, oh: 15, profit: 25, disc: 0, vat: 1 };
   var PCTKEYS = ['waste', 'oh', 'profit', 'disc'];
+  /* Steel used to be a fixed section (weight x waste x grade price). It is now an ordinary material row. */
+  function steelItemFor(p, sh) {
+    var w = num(p && p.weight);
+    if (!w || (p && (p.steel === 0 || p.steel === false))) return null;
+    var waste = sh && sh.waste !== undefined ? Math.min(100, num(sh.waste)) : SHARED0.waste;
+    return { mid: sh && sh.grade === '316' ? 'm-steel316' : 'm-steel304', qty: w * (1 + waste / 100) };
+  }
+  function convertSteel(obj) {
+    var sh = obj.sh || {}, mats = (obj.mats || []).slice();
+    function ensure(id, name, price) {
+      if (!mats.some(function (m) { return m && m.id === id; })) mats.push({ id: id, name: name, icon: 'sheet', unit: 'کیلوگرم', price: price });
+    }
+    ensure('m-steel304', 'استیل ۳۰۴', sh.p304 !== undefined ? num(sh.p304) : SHARED0.p304);
+    ensure('m-steel316', 'استیل ۳۱۶', sh.p316 !== undefined ? num(sh.p316) : SHARED0.p316);
+    var products = (obj.products || []).map(function (p) {
+      var q = clone(p), it = steelItemFor(q, sh);
+      q.items = Array.isArray(q.items) ? q.items.slice() : [];
+      if (it) {
+        var same = q.items.filter(function (i) { return i && i.mid === it.mid; })[0];
+        if (same) same.qty = num(same.qty) + it.qty; else q.items.unshift(it);
+      }
+      delete q.weight; delete q.steel;
+      return q;
+    });
+    return { v: 4, pid: obj.pid, sh: obj.sh, mats: mats, products: products };
+  }
+  function defaultProducts() {
+    return DEF_PRODUCTS.map(function (p) {
+      var q = clone(p), it = steelItemFor(q, SHARED0);
+      if (it) q.items.unshift(it);
+      return normProduct(q);
+    });
+  }
   var MAXP = 60, MAXM = 200;
 
   function normMat(m) {
@@ -354,7 +393,8 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       name: String(m.name || '').slice(0, 60) || 'ماده',
       icon: ICONS[m.icon] ? m.icon : 'box',
       unit: UNITS.indexOf(m.unit) >= 0 ? m.unit : 'عدد',
-      price: num(m.price)
+      price: num(m.price),
+      spec: String(m.spec || '').slice(0, 120)
     };
   }
   function normProduct(p) {
@@ -371,8 +411,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     return {
       id: String(p.id || newId()),
       name: String(p.name || '').slice(0, 60) || 'محصول',
-      weight: num(p.weight), hours: num(p.hours),
-      steel: p.steel === 0 || p.steel === false ? 0 : 1,
+      hours: num(p.hours),
       qty: Math.max(1, num(p.qty) || 1),
       items: items,
       ex: e
@@ -391,7 +430,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     return o;
   }
 
-  var S = { pid: '', sh: clone(SHARED0), mats: DEF_MATS.map(normMat), products: DEF_PRODUCTS.map(normProduct) };
+  var S = { pid: '', sh: clone(SHARED0), mats: DEF_MATS.map(normMat), products: defaultProducts() };
   S.pid = S.products[0].id;
 
   /* Old saves (before the materials list) carried one "parts" number per product. */
@@ -420,6 +459,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
   function loadState(obj) {
     if (!obj || !Array.isArray(obj.products) || !obj.products.length) return false;
     if (!Array.isArray(obj.mats)) obj = migrate(obj);
+    if (obj.v !== 4) obj = convertSteel(obj);
     var seenM = {};
     var mats = obj.mats.slice(0, MAXM).map(function (m) {
       var q = normMat(m);
@@ -455,7 +495,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     else if (r1) { var o1 = JSON.parse(r1); if (o1 && o1.pp) loadState(fromV1(o1)); }
   } catch (e) {}
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify({ v: 3, pid: S.pid, sh: S.sh, mats: S.mats, products: S.products })); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify({ v: 4, pid: S.pid, sh: S.sh, mats: S.mats, products: S.products })); } catch (e) {}
   }
 
   function byId(id) {
@@ -504,13 +544,6 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
 
   var SECTIONS = [
     { prod: 1 },
-    { title: 'استیل', steelToggle: 1, fields: [
-      { k: 'weight', s: 'pp', label: 'وزن استیل مصرفی', unit: 'کیلوگرم', dec: 1, hint: 'قبل از ضایعات' },
-      { k: 'waste', s: 'sh', label: 'ضایعات برش و خم استیل', unit: PCT, pct: 1 },
-      { k: 'p304', s: 'sh', label: 'قیمت هر کیلو استیل ۳۰۴', unit: 'تومان' },
-      { k: 'p316', s: 'sh', label: 'قیمت هر کیلو استیل ۳۱۶', unit: 'تومان' },
-      { grade: 1 }
-    ] },
     { items: 1 },
     { title: 'ساخت', fields: [
       { k: 'hours', s: 'pp', label: 'ساعت کار تولید', unit: 'ساعت', hint: 'برش، جوش، پولیش و مونتاژ' },
@@ -623,6 +656,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
         '<button type="button" class="iconbtn" data-act="icon" aria-label="تغییر آیکون" aria-expanded="' + (openPick === m.id) + '">' + svg(m.icon) + '</button>' +
         '<input class="mname" data-f="name" maxlength="60" autocomplete="off" aria-label="نام ماده" value="' + esc(m.name) + '">' +
         '<button type="button" class="xbtn" data-act="del" aria-label="حذف این ردیف">×</button></div>' +
+        '<input class="mspec" data-f="spec" maxlength="120" autocomplete="off" aria-label="مشخصات" placeholder="مشخصات (مثلاً ۳ کیلووات، ۱۴۰۰ دور)" value="' + esc(m.spec) + '">' +
         '<div class="mcalc">' +
         '<label class="field"><span class="lbl">مقدار</span><span class="box"><input data-f="qty" inputmode="decimal" autocomplete="off" aria-label="مقدار" value="' + fmtQ(it.qty) + '">' +
         '<span class="unit"><select data-f="unit" aria-label="واحد">' +
@@ -645,7 +679,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     d.items.forEach(function (it) { used[it.mid] = 1; });
     var avail = S.mats.filter(function (m) { return !used[m.id]; });
     addFromEl.innerHTML = '<option value="">+ افزودن از لیست مواد…</option>' +
-      avail.map(function (m) { return '<option value="' + esc(m.id) + '">' + esc(m.name) + '</option>'; }).join('');
+      avail.map(function (m) { return '<option value="' + esc(m.id) + '">' + esc(m.name + (m.spec ? ' — ' + m.spec : '')) + '</option>'; }).join('');
     addFromEl.hidden = !avail.length;
     updateLines();
   }
@@ -695,6 +729,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       if (f === 'qty') it.qty = parse(e.target.value);
       else if (f === 'price') m.price = parse(e.target.value);
       else if (f === 'name') m.name = e.target.value.slice(0, 60);
+      else if (f === 'spec') m.spec = e.target.value.slice(0, 120);
       else return;
       update(true);
     });
@@ -743,7 +778,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     document.getElementById('addNew').addEventListener('click', addNewMaterial);
   }
 
-  function stateJson() { return JSON.stringify({ v: 3, pid: S.pid, sh: S.sh, mats: S.mats, products: S.products }); }
+  function stateJson() { return JSON.stringify({ v: 4, pid: S.pid, sh: S.sh, mats: S.mats, products: S.products }); }
   function remember() {
     prevJson = stateJson();
     try { localStorage.setItem(PREVK, prevJson); } catch (e) {}
@@ -816,16 +851,9 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
         });
         html += '</div>';
       } else {
-        if (sec.steelToggle) {
-          html += '<label class="check" style="display:flex;align-items:center;gap:10px;min-height:42px;margin-bottom:8px"><input type="checkbox" id="on-steel"><span>این دستگاه از استیل استفاده می‌کند</span></label>';
-        }
-        html += '<div class="fields"' + (sec.steelToggle ? ' id="steelFields"' : '') + '>';
+        html += '<div class="fields">';
         sec.fields.forEach(function (f) {
-          if (f.grade) {
-            html += '<div class="field"><span class="lbl">جنس استیل</span><span class="seg" role="group" aria-label="جنس استیل">' +
-              '<button type="button" data-grade="304" aria-pressed="true">استیل ۳۰۴</button>' +
-              '<button type="button" data-grade="316" aria-pressed="false">استیل ۳۱۶</button></span></div>';
-          } else if (f.vat) {
+          if (f.vat) {
             html += '<div class="field"><span class="lbl">مالیات</span><label style="display:flex;align-items:center;gap:10px;min-height:42px"><input type="checkbox" id="vat"><span>افزودن ۱۰٪ مالیات بر ارزش افزوده</span></label></div>';
           } else {
             html += '<label class="field" for="f-' + f.k + '"><span class="lbl">' + f.label + '</span><span class="box"><input id="f-' + f.k + '" inputmode="decimal" autocomplete="off"><span class="unit">' + f.unit + '</span></span>' +
@@ -869,10 +897,6 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     });
 
     document.getElementById('vat').addEventListener('change', function (ev) { S.sh.vat = ev.target.checked ? 1 : 0; update(true); });
-    document.getElementById('on-steel').addEventListener('change', function (ev) { cur().steel = ev.target.checked ? 1 : 0; update(true); });
-    inputsEl.querySelectorAll('[data-grade]').forEach(function (b) {
-      b.addEventListener('click', function () { S.sh.grade = b.getAttribute('data-grade'); update(true); });
-    });
 
     var nameEl = document.getElementById('f-name');
     nameEl.addEventListener('input', function () { cur().name = nameEl.value; update(true); });
@@ -949,7 +973,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     twoStep(document.getElementById('bkReset'), 'مطمئنید؟ همه چیز پاک می‌شود', function () {
       remember();
       S.mats = DEF_MATS.map(normMat);
-      S.products = DEF_PRODUCTS.map(normProduct);
+      S.products = defaultProducts();
       S.sh = clone(SHARED0);
       S.pid = S.products[0].id;
       renderAll();
@@ -974,10 +998,8 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
 
   function calc() {
     var d = cur(), s = S.sh;
-    var pricePerKg = s.grade === '316' ? s.p316 : s.p304;
-    var steel = d.steel ? d.weight * (1 + s.waste / 100) * pricePerKg : 0;
     var items = itemsTotal();
-    var material = steel + items;
+    var material = items;
     var labor = d.hours * s.rate;
     var extras = 0;
     EXTRAS.forEach(function (e) { if (d.ex[e[0]].on) extras += d.ex[e[0]].amt; });
@@ -990,11 +1012,10 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     var qty = Math.max(1, d.qty);
     var sub = unitNet * qty;
     var vat = s.vat ? sub * 0.1 : 0;
-    return { steel: steel, items: items, labor: labor, extras: extras, overhead: overhead, profit: profit, cost: cost, unit: unit, discAmt: discAmt, unitNet: unitNet, qty: qty, sub: sub, vat: vat, total: sub + vat };
+    return { items: items, labor: labor, extras: extras, overhead: overhead, profit: profit, cost: cost, unit: unit, discAmt: discAmt, unitNet: unitNet, qty: qty, sub: sub, vat: vat, total: sub + vat };
   }
 
   var PARTS = [
-    ['steel', 'استیل', '--c-material'],
     ['items', 'مواد و قطعات', '--c-parts'],
     ['labor', 'دستمزد ساخت', '--c-labor'],
     ['extras', 'اضافات', '--c-extras'],
@@ -1007,10 +1028,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     var r = calc();
     markChips();
     updateLines();
-    inputsEl.querySelectorAll('[data-grade]').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-grade') === S.sh.grade ? 'true' : 'false'); });
     EXTRAS.forEach(function (e) { document.getElementById('box-' + e[0]).classList.toggle('off', !cur().ex[e[0]].on); });
-    document.getElementById('on-steel').checked = !!cur().steel;
-    document.getElementById('steelFields').hidden = !cur().steel;
 
     document.getElementById('pname').textContent = cur().name || 'بدون نام';
     document.getElementById('total').textContent = fmt(r.total);
@@ -1020,7 +1038,6 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
 
     var stack = '', leg = '';
     PARTS.forEach(function (p) {
-      if (p[0] === 'steel' && !cur().steel) return;
       var v = r[p[0]], share = r.unit > 0 ? v / r.unit * 100 : 0;
       stack += '<span style="width:' + share.toFixed(2) + '%;background:var(' + p[2] + ')" title="' + p[1] + '"></span>';
       leg += '<li><i style="background:var(' + p[2] + ')"></i><span>' + p[1] + '</span><span class="amt">' + fmt(v) + '</span><span class="pct">' + pctf.format(share) + PCT + '</span></li>';
@@ -1074,13 +1091,29 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     try { done = localStorage.getItem(SEEDK) || ''; } catch (e) {}
     if (done === '1') return;
     if (!byId('flour-roaster')) {
-      DEF_MATS.forEach(function (m) { if (m.id.indexOf('m-fl-') === 0 && !matById(m.id) && S.mats.length < MAXM) S.mats.push(normMat(m)); });
-      DEF_PRODUCTS.forEach(function (p) { if (p.id === 'flour-roaster' && S.products.length < MAXP) S.products.push(normProduct(clone(p))); });
+      DEF_MATS.forEach(function (m) { if ((m.id.indexOf('m-fl-') === 0 || m.id.indexOf('m-steel') === 0) && !matById(m.id) && S.mats.length < MAXM) S.mats.push(normMat(m)); });
+      DEF_PRODUCTS.forEach(function (p) {
+        if (p.id !== 'flour-roaster' || S.products.length >= MAXP) return;
+        var q = clone(p), it = steelItemFor(q, S.sh);
+        if (it) q.items.unshift(it);
+        S.products.push(normProduct(q));
+      });
     }
     var same = Object.keys(SHARED_OLD).every(function (k) { return S.sh[k] === SHARED_OLD[k]; });
     if (same) S.sh = clone(SHARED0);
     if (byId('flour-roaster')) S.pid = 'flour-roaster';
     try { localStorage.setItem(SEEDK, '1'); } catch (e) {}
+    save();
+  })();
+
+  (function seedMotorGearbox() {
+    var K = 'naderi-seed-motor-1', done = '';
+    try { done = localStorage.getItem(K) || ''; } catch (e) {}
+    if (done === '1') return;
+    DEF_MATS.forEach(function (m) {
+      if ((m.id === 'm-emotor' || m.id === 'm-gearbox') && !matById(m.id) && S.mats.length < MAXM) S.mats.push(normMat(m));
+    });
+    try { localStorage.setItem(K, '1'); } catch (e) {}
     save();
   })();
 
