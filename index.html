@@ -236,7 +236,8 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       <ul class="legend" id="legend"></ul>
       <dl class="sum" id="sum"></dl>
       <div class="actions">
-        <button class="btn primary" id="copy" type="button">کپی متن پیش‌فاکتور</button>
+        <button class="btn primary" id="copy" type="button">کپی پیش‌فاکتور</button>
+        <button class="btn" id="qGo" type="button">ویرایش پیش‌فاکتور</button>
       </div>
       <p class="status" id="status"></p>
       <textarea class="quote fa" id="quote" readonly hidden aria-label="متن پیش‌فاکتور"></textarea>
@@ -279,6 +280,43 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function num(v) { v = Number(v); return isFinite(v) && v >= 0 ? v : 0; }
   function newId() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  var ONES = ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه', 'ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'];
+  var TENS = ['', '', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'];
+  var HUNDS = ['', 'صد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'];
+  var SCALES = ['', 'هزار', 'میلیون', 'میلیارد', 'هزار میلیارد'];
+  function words3(n) {
+    var h = Math.floor(n / 100), r = n % 100, out = [];
+    if (h) out.push(HUNDS[h]);
+    if (r) {
+      if (r < 20) out.push(ONES[r]);
+      else { out.push(TENS[Math.floor(r / 10)]); if (r % 10) out.push(ONES[r % 10]); }
+    }
+    return out.join(' و ');
+  }
+  function toWords(n) {
+    n = Math.round(n);
+    if (!isFinite(n) || n <= 0) return 'صفر';
+    var g = [];
+    while (n > 0) { g.push(n % 1000); n = Math.floor(n / 1000); }
+    var out = [];
+    for (var i = g.length - 1; i >= 0; i--) {
+      if (!g[i]) continue;
+      out.push(i ? words3(g[i]) + ' ' + SCALES[Math.min(i, 4)] : words3(g[i]));
+    }
+    return out.join(' و ');
+  }
+  var QF = [
+    ['cust', 'نام مشتری'], ['seller', 'نام فروشنده'], ['phone', 'تلفن تماس'], ['addr', 'آدرس'], ['site', 'سایت'],
+    ['valid', 'اعتبار پیش‌فاکتور'], ['pay', 'شرایط پرداخت'], ['deliv', 'زمان تحویل'], ['warr', 'گارانتی'], ['note', 'توضیحات اضافه']
+  ];
+  var DEFQ = { cust: '', seller: 'ماشین‌سازی نادری', phone: '', addr: 'تبریز', site: 'naderi.co', valid: '۷ روز',
+    pay: '۵۰٪ پیش‌پرداخت، ۵۰٪ هنگام تحویل', deliv: '۳۰ روز کاری پس از پیش‌پرداخت', warr: '۱۲ ماه گارانتی', note: '' };
+  function normQ(q) {
+    var o = {};
+    QF.forEach(function (f) { var v = q && q[f[0]] !== undefined ? q[f[0]] : DEFQ[f[0]]; o[f[0]] = String(v).slice(0, 300); });
+    return o;
+  }
+  var qDirty = false;
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
   /* ---------- icons ---------- */
@@ -375,7 +413,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       delete q.weight; delete q.steel;
       return q;
     });
-    return { v: 4, pid: obj.pid, sh: obj.sh, mats: mats, products: products };
+    return { v: 4, pid: obj.pid, sh: obj.sh, mats: mats, products: products, q: obj.q };
   }
   function defaultProducts() {
     return DEF_PRODUCTS.map(function (p) {
@@ -430,7 +468,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     return o;
   }
 
-  var S = { pid: '', sh: clone(SHARED0), mats: DEF_MATS.map(normMat), products: defaultProducts() };
+  var S = { pid: '', q: clone(DEFQ), sh: clone(SHARED0), mats: DEF_MATS.map(normMat), products: defaultProducts() };
   S.pid = S.products[0].id;
 
   /* Old saves (before the materials list) carried one "parts" number per product. */
@@ -484,6 +522,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     S.products = list;
     S.sh = normShared(obj.sh);
     S.pid = seen[obj.pid] ? obj.pid : list[0].id;
+    S.q = normQ(obj.q);
     return true;
   }
 
@@ -495,7 +534,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     else if (r1) { var o1 = JSON.parse(r1); if (o1 && o1.pp) loadState(fromV1(o1)); }
   } catch (e) {}
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify({ v: 4, pid: S.pid, sh: S.sh, mats: S.mats, products: S.products })); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify({ v: 4, pid: S.pid, sh: S.sh, mats: S.mats, products: S.products, q: S.q })); } catch (e) {}
   }
 
   function byId(id) {
@@ -542,6 +581,19 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     '<button class="sbtn danger" id="bkReset" type="button">بازگردانی همه چیز به نمونه</button></div>' +
     '<p class="status" id="bstatus" role="status"></p></details>';
 
+  function quoteHtml() {
+    var h = '<fieldset class="group" id="quoteBox"><h2>پیش‌فاکتور</h2>' +
+      '<p class="hint" style="margin-bottom:12px">متن پیش‌فاکتور از برآورد همین دستگاه ساخته می‌شود. هر جای متن را می‌توانی ویرایش کنی. تا وقتی ویرایش نکرده‌ای، با تغییر عددها خودش به‌روز می‌شود. مشخصات قطعات را در ردیف مواد بنویس تا در پیش‌فاکتور بیاید.</p><div class="fields">';
+    QF.forEach(function (f) {
+      h += '<label class="field" for="q-' + f[0] + '"><span class="lbl">' + f[1] + '</span><span class="box"><input id="q-' + f[0] + '" type="text" maxlength="300" autocomplete="off"></span></label>';
+    });
+    h += '</div><textarea class="quote fa" id="qtext" rows="18" style="min-height:320px;margin-top:14px" spellcheck="false" aria-label="متن پیش‌فاکتور (قابل ویرایش)"></textarea>' +
+      '<div class="row"><button class="sbtn wa" id="qCopy" type="button">کپی متن</button>' +
+      '<button class="sbtn" id="qWa" type="button">ارسال در واتساپ</button>' +
+      '<button class="sbtn" id="qReset" type="button">ساخت دوباره متن</button></div>' +
+      '<p class="status" id="qstatus" role="status"></p></fieldset>';
+    return h;
+  }
   var SECTIONS = [
     { prod: 1 },
     { items: 1 },
@@ -559,6 +611,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       { k: 'disc', s: 'sh', label: 'تخفیف', unit: PCT, pct: 1 },
       { vat: 1 }
     ] },
+    { quote: 1 },
     { backup: 1 }
   ];
 
@@ -571,10 +624,10 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
 
   var tmr;
   function say(t) {
-    ['status', 'pstatus', 'bstatus'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = t; });
+    ['status', 'pstatus', 'bstatus', 'qstatus'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = t; });
     clearTimeout(tmr);
     tmr = setTimeout(function () {
-      ['status', 'pstatus', 'bstatus'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = ''; });
+      ['status', 'pstatus', 'bstatus', 'qstatus'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = ''; });
     }, 3500);
   }
 
@@ -656,7 +709,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
         '<button type="button" class="iconbtn" data-act="icon" aria-label="تغییر آیکون" aria-expanded="' + (openPick === m.id) + '">' + svg(m.icon) + '</button>' +
         '<input class="mname" data-f="name" maxlength="60" autocomplete="off" aria-label="نام ماده" value="' + esc(m.name) + '">' +
         '<button type="button" class="xbtn" data-act="del" aria-label="حذف این ردیف">×</button></div>' +
-        '<input class="mspec" data-f="spec" maxlength="120" autocomplete="off" aria-label="مشخصات" placeholder="مشخصات " value="' + esc(m.spec) + '">' +
+        '<input class="mspec" data-f="spec" maxlength="120" autocomplete="off" aria-label="مشخصات" placeholder="مشخصات (مثلاً ۳ کیلووات، ۱۴۰۰ دور)" value="' + esc(m.spec) + '">' +
         '<div class="mcalc">' +
         '<label class="field"><span class="lbl">مقدار</span><span class="box"><input data-f="qty" inputmode="decimal" autocomplete="off" aria-label="مقدار" value="' + fmtQ(it.qty) + '">' +
         '<span class="unit"><select data-f="unit" aria-label="واحد">' +
@@ -778,7 +831,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     document.getElementById('addNew').addEventListener('click', addNewMaterial);
   }
 
-  function stateJson() { return JSON.stringify({ v: 4, pid: S.pid, sh: S.sh, mats: S.mats, products: S.products }); }
+  function stateJson() { return JSON.stringify({ v: 4, pid: S.pid, sh: S.sh, mats: S.mats, products: S.products, q: S.q }); }
   function remember() {
     prevJson = stateJson();
     try { localStorage.setItem(PREVK, prevJson); } catch (e) {}
@@ -842,6 +895,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       if (sec.prod) { html += PROD_HTML; return; }
       if (sec.items) { html += ITEMS_HTML; return; }
       if (sec.backup) { html += BACKUP_HTML; return; }
+      if (sec.quote) { html += quoteHtml(); return; }
       html += '<fieldset class="group"><h2>' + sec.title + '</h2>';
       if (sec.extras) {
         html += '<div class="extras">';
@@ -897,6 +951,21 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     });
 
     document.getElementById('vat').addEventListener('change', function (ev) { S.sh.vat = ev.target.checked ? 1 : 0; update(true); });
+    QF.forEach(function (f) {
+      var el = document.getElementById('q-' + f[0]);
+      el.addEventListener('input', function () { S.q[f[0]] = el.value; save(); refreshShare(); refreshQuote(); });
+    });
+    var qt = document.getElementById('qtext');
+    qt.addEventListener('input', function () { qDirty = true; });
+    document.getElementById('qCopy').addEventListener('click', function () {
+      var t = qt.value;
+      try { navigator.clipboard.writeText(t).then(function () { say('متن پیش‌فاکتور کپی شد.'); }, manualCopy); } catch (e) { manualCopy(); }
+      function manualCopy() { try { qt.focus(); qt.select(); } catch (e) {} say('متن انتخاب شد. کپی کنید.'); }
+    });
+    document.getElementById('qWa').addEventListener('click', function () {
+      window.open('https://wa.me/?text=' + encodeURIComponent(qt.value), '_blank');
+    });
+    document.getElementById('qReset').addEventListener('click', function () { qDirty = false; refreshQuote(); say('متن دوباره از برآورد ساخته شد.'); });
 
     var nameEl = document.getElementById('f-name');
     nameEl.addEventListener('input', function () { cur().name = nameEl.value; update(true); });
@@ -974,6 +1043,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
       remember();
       S.mats = DEF_MATS.map(normMat);
       S.products = defaultProducts();
+      S.q = clone(DEFQ);
       S.sh = clone(SHARED0);
       S.pid = S.products[0].id;
       renderAll();
@@ -993,6 +1063,8 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     });
     document.getElementById('vat').checked = !!S.sh.vat;
     document.getElementById('f-name').value = cur().name;
+    QF.forEach(function (f) { document.getElementById('q-' + f[0]).value = S.q[f[0]]; });
+    qDirty = false;
     renderItems();
   }
 
@@ -1054,27 +1126,61 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent);
     if (S.sh.vat) rows.push(['مالیات ارزش افزوده', fmt(r.vat)]);
     document.getElementById('sum').innerHTML = rows.map(function (x) { return '<div><dt>' + x[0] + '</dt><dd>' + x[1] + '</dd></div>'; }).join('');
 
+    refreshQuote();
     if (persist) { save(); refreshShare(); }
   }
 
+  function refreshQuote() {
+    var el = document.getElementById('qtext');
+    if (el && !qDirty) el.value = quoteText();
+  }
   function quoteText() {
-    var r = calc(), d = cur(), s = S.sh;
-    var L = [];
-    L.push('پیش‌فاکتور ماشین‌سازی نادری');
-    L.push('دستگاه: ' + (d.name || 'بدون نام'));
-    L.push('تعداد: ' + fmt(r.qty));
-    L.push('قیمت هر دستگاه: ' + fmt(r.unit) + ' تومان');
-    if (s.disc > 0) L.push('تخفیف ' + fmtNum(s.disc) + PCT + ' ← ' + fmt(r.unitNet) + ' تومان');
+    var r = calc(), d = cur(), s = S.sh, q = S.q, L = [];
+    L.push('پیش‌فاکتور ' + (q.seller || 'ماشین‌سازی نادری'));
+    L.push('تاریخ: ' + new Date().toLocaleDateString('fa-IR'));
+    if (q.cust) L.push('مشتری گرامی: ' + q.cust);
+    L.push('');
+    L.push('شرح: ' + (d.name || 'بدون نام'));
+    L.push('تعداد: ' + fmt(r.qty) + ' دستگاه');
+    var spec = [];
+    d.items.forEach(function (it) {
+      var m = matById(it.mid);
+      if (!m || !(it.qty > 0)) return;
+      if (m.id.indexOf('m-steel') === 0) spec.push('جنس بدنه: ' + m.name);
+      else if (m.spec) spec.push(m.name + ': ' + m.spec + ' — ' + fmtQ(it.qty) + ' ' + m.unit);
+    });
+    if (spec.length) { L.push('مشخصات:'); spec.forEach(function (x) { L.push('- ' + x); }); }
     var inc = EXTRAS.filter(function (e) { return d.ex[e[0]].on; }).map(function (e) { return e[1]; });
     if (inc.length) L.push('شامل: ' + inc.join('، '));
-    if (s.vat) L.push('مالیات ارزش افزوده: ' + fmt(r.vat) + ' تومان');
-    L.push('مبلغ نهایی: ' + fmt(r.total) + ' تومان (' + millions(r.total) + ')');
+    L.push('');
+    L.push('قیمت هر دستگاه: ' + fmt(r.unit) + ' تومان');
+    if (s.disc > 0) L.push('تخفیف ' + fmtNum(s.disc) + PCT + ': ' + fmt(r.unitNet) + ' تومان');
+    if (r.qty > 1) L.push('جمع ' + fmt(r.qty) + ' دستگاه: ' + fmt(r.sub) + ' تومان');
+    if (s.vat) L.push('مالیات بر ارزش افزوده: ' + fmt(r.vat) + ' تومان');
+    L.push('مبلغ نهایی: ' + fmt(r.total) + ' تومان');
+    L.push('به حروف: ' + toWords(r.total) + ' تومان');
+    var t = [];
+    if (q.pay) t.push('شرایط پرداخت: ' + q.pay);
+    if (q.deliv) t.push('زمان تحویل: ' + q.deliv);
+    if (q.warr) t.push('گارانتی: ' + q.warr);
+    if (q.valid) t.push('اعتبار پیش‌فاکتور: ' + q.valid);
+    if (q.note) t.push(q.note);
+    if (t.length) { L.push(''); t.forEach(function (x) { L.push(x); }); }
+    var c = [];
+    if (q.phone) c.push('تلفن: ' + q.phone);
+    if (q.addr) c.push('آدرس: ' + q.addr);
+    if (q.site) c.push(q.site);
+    if (c.length) { L.push(''); L.push(q.seller || 'ماشین‌سازی نادری'); c.forEach(function (x) { L.push(x); }); }
     return L.join('\n');
   }
 
+  document.getElementById('qGo').addEventListener('click', function () {
+    var el = document.getElementById('quoteBox');
+    try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { el.scrollIntoView(); }
+  });
   var quoteEl = document.getElementById('quote');
   document.getElementById('copy').addEventListener('click', function () {
-    var t = quoteText();
+    var t = document.getElementById('qtext').value || quoteText();
     function fallback() {
       quoteEl.value = t; quoteEl.hidden = false;
       try { quoteEl.focus(); quoteEl.select(); } catch (e) {}
